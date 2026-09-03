@@ -1,6 +1,9 @@
 """dctloop command line.
 
-    python3 -m dctloop note.wav [note2.wav ...] -o out --loop 1.5 --mode snap --basis dct [--play]
+    python3 -m dctloop note.wav [note2.wav ... | directory] -o out --loop 1.5 --basis dct [--play]
+
+Writes <name>_loop.wav, <name>_preview.wav (original, gap, loop repeated) and <name>.json per
+input.  ``--split`` switches to the experimental harmonic + residual two-loop output (split.py).
 """
 from __future__ import annotations
 
@@ -9,7 +12,7 @@ import os
 import subprocess
 import sys
 
-from .core import process
+from .pipeline import loop_file
 from .split import process_split
 
 
@@ -17,32 +20,30 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog='dctloop', description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('inputs', nargs='+', help='wav/flac files (or directories) of sustained notes')
-    p.add_argument('-o', '--out', default='dctloop_out', help='output directory')
+    p.add_argument('-o', '--out', default='dctloop_out', help='output directory (default dctloop_out)')
     p.add_argument('--loop', type=float, default=1.5, help='target loop length in seconds (default 1.5)')
     p.add_argument('--periods', type=int, help='instead of --loop: exactly this many f0 periods')
-    p.add_argument('--mode', choices=['snap', 'comb'], default='snap',
-                   help="snap: Welch energy on the loop grid (keeps noise); comb: one frame, attenuates off-grid content")
     p.add_argument('--basis', choices=['dct', 'dft'], default='dct',
-                   help='dct: real cosines, palindromic loop (default); dft: complex, original phases')
+                   help='dct: real cosines, palindromic loop (default); dft: original phases, no mirror')
     p.add_argument('--phase', choices=['orig', 'random'], default='orig',
-                   help="partial phases (dct: signs) from the input, or random")
-    p.add_argument('--f0', type=float, help='fundamental in Hz (default: parse the note from the file name + pYIN)')
+                   help='partial phases (dct: signs) from the input, or random')
+    p.add_argument('--f0', type=float, help='fundamental in Hz (default: note in the file name + pYIN, refined)')
     p.add_argument('--no-fit', action='store_true', help='do not round the loop to an integer number of periods')
+    p.add_argument('--lock', type=float, default=1.5, metavar='BINS',
+                   help='harmonic locking half-width in grid bins (default 1.5; 0 disables)')
     p.add_argument('--start', type=float, help='analysis segment start (s); default: auto sustain detection')
     p.add_argument('--dur', type=float, help='analysis segment length (s); default: whole sustain')
     p.add_argument('--no-preview', action='store_true', help='skip the original+loop preview file')
     p.add_argument('--play', action='store_true', help='play each preview with paplay after building it')
-    p.add_argument('--split', action='store_true',
+    p.add_argument('--seed', type=int, default=0, help='for --phase random')
+    p.add_argument('-v', '--verbose', action='store_true', help='re-raise errors instead of skipping the file')
+    g = p.add_argument_group('split mode (experimental, dctloop/split.py)')
+    g.add_argument('--split', action='store_true',
                    help='harmonic loop (a few periods) + long residual loop + two-region SFZ instead of one loop')
-    p.add_argument('--resid-loop', type=float, default=3.0, help='--split: residual loop length in seconds (default 3)')
-    p.add_argument('--harm-periods', type=int, help='--split: periods in the harmonic loop (default: shortest within 0.5 cent)')
-    p.add_argument('--harm-bw', type=float, help='--split: sum +-this many cents around each harmonic into it (default: peak line only)')
-    p.add_argument('--no-sfizz', action='store_true', help='--split: skip the sfizz render check')
-    p.add_argument('--lock', type=float, default=1.5, metavar='BINS',
-                   help='harmonic locking: everything within this many grid bins of h*f0 goes to the '
-                        'harmonic bin exactly (default 1.5; 0 disables)')
-    p.add_argument('--seed', type=int, default=0)
-    p.add_argument('-v', '--verbose', action='store_true')
+    g.add_argument('--resid-loop', type=float, default=3.0, help='residual loop length in seconds (default 3)')
+    g.add_argument('--harm-periods', type=int, help='periods in the harmonic loop (default: shortest within 0.5 cent)')
+    g.add_argument('--harm-bw', type=float, help='sum +-this many cents around each harmonic into it')
+    g.add_argument('--no-sfizz', action='store_true', help='skip the sfizz render check')
     return p
 
 
@@ -65,13 +66,10 @@ def main(argv=None) -> int:
                 r = process_split(path, a.out, resid_seconds=a.resid_loop, harm_periods=a.harm_periods,
                                   harm_bw_cents=a.harm_bw, f0=a.f0, start=a.start, dur=a.dur, seed=a.seed,
                                   verbose=True, sfizz=not a.no_sfizz)
-                if a.play:
-                    subprocess.run(['paplay', r.outputs['preview']])
-                continue
-            r = process(path, a.out, loop=a.loop, mode=a.mode, basis=a.basis, phase=a.phase,
-                        f0=a.f0, fit=not a.no_fit, start=a.start, dur=a.dur,
-                        periods=a.periods, preview=not a.no_preview, seed=a.seed, lock_width=a.lock,
-                        verbose=True)
+            else:
+                r = loop_file(path, a.out, a.loop, basis=a.basis, f0=a.f0, fit=not a.no_fit,
+                              periods=a.periods, lock=a.lock, phase=a.phase, start=a.start, dur=a.dur,
+                              preview=not a.no_preview, seed=a.seed, verbose=True)
         except Exception as e:  # keep going through a directory
             print(f'  [{os.path.basename(path)}] FAILED: {e}', file=sys.stderr)
             if a.verbose:

@@ -4,7 +4,8 @@ import math
 import numpy as np
 import pytest
 
-from dctloop.core import fit_loop_length, make_loop, note_from_name, refine_f0, seam_metrics
+from dctloop import (fit_loop_length, harmonic_am, loop_signal, make_loop, note_from_name, refine_f0,
+                     seam_metrics)
 
 
 FS = 44100
@@ -38,14 +39,13 @@ def test_fit_loop_length_exact_periods():
 
 
 @pytest.mark.parametrize('basis', ['dct', 'dft'])
-@pytest.mark.parametrize('mode', ['snap', 'comb'])
-def test_loop_is_exactly_periodic_and_sounds_like_the_input(basis, mode):
+def test_loop_is_exactly_periodic_and_sounds_like_the_input(basis):
     f0 = 220.0
     rng = np.random.default_rng(1)
     phases = rng.uniform(-np.pi, np.pi, 4)
     x = tone(f0, 4.0, phases)[:, None]
     L, K, _ = fit_loop_length(1.0, FS, f0)
-    loop, info = make_loop(x, FS, L, mode=mode, basis=basis)
+    loop, info = make_loop(x, FS, L, basis=basis)
     assert len(loop) == L and info['q'] == 4
     # exact periodicity: the seam is no bigger than any other step in the signal
     step = np.abs(np.diff(np.concatenate([loop, loop[:1]]), axis=0))
@@ -62,9 +62,9 @@ def test_loop_is_exactly_periodic_and_sounds_like_the_input(basis, mode):
 def test_dct_loop_is_a_palindrome():
     x = tone(330.0, 3.0, noise=0.05)[:, None]
     L, _, _ = fit_loop_length(0.5, FS, 330.0)
-    loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    loop, _ = make_loop(x, FS, L, basis='dct')
     assert np.allclose(loop, loop[::-1])
-    loop2, _ = make_loop(x, FS, L, mode='snap', basis='dft')
+    loop2, _ = make_loop(x, FS, L, basis='dft')
     assert not np.allclose(loop2, loop2[::-1])
 
 
@@ -76,31 +76,34 @@ def test_snap_amplitude_is_phase_independent():
     got = []
     for ph in np.linspace(0, np.pi, 9):
         x = tone(f0, 2.0, [ph, ph, ph, ph], amps=(1.0,))[:, None]
-        loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+        loop, _ = make_loop(x, FS, L, basis='dct')
         got.append(np.abs(np.fft.rfft(loop[:, 0]))[K] * 2 / L)
     got = np.array(got)
     assert got.max() / got.min() < 1.05, got
 
 
-def test_comb_attenuates_noise_snap_keeps_it():
+def test_calibration_is_unity_on_noise_and_tones():
+    """White noise comes back at unity gain and a tone with noise keeps both levels."""
     rng = np.random.default_rng(3)
-    x = rng.standard_normal(int(4.0 * FS))[:, None]
-    L = 22050
-    y_comb, _ = make_loop(x, FS, L, mode='comb', basis='dct')
-    y_snap, _ = make_loop(x, FS, L, mode='snap', basis='dct')
-    # both are RMS-normalised, so compare the un-normalised fold: recompute via the gain
-    # (gain > 1 means energy was lost before normalisation)
-    _, info_c = make_loop(x, FS, L, mode='comb', basis='dct')
-    _, info_s = make_loop(x, FS, L, mode='snap', basis='dct')
-    assert info_c['gain'] > 1.4 * info_s['gain']
-    assert abs(info_s['gain'] - 1.0) < 0.35
+    for q in (2, 4):
+        x = rng.standard_normal((q * 22050, 1))
+        for basis in ('dct', 'dft'):
+            _, info = make_loop(x, FS, 22050, basis=basis)
+            assert abs(info['gain'] - 1.0) < 0.05, (q, basis, info['gain'])
+    n = np.arange(4 * FS)
+    x = (np.cos(2 * np.pi * 220 * n / FS + 0.7) + 0.05 * rng.standard_normal(len(n)))[:, None]
+    loop, info = make_loop(x, FS, 22050, basis='dct')
+    Y = np.abs(np.fft.rfft(loop[:, 0])) * 2 / len(loop)
+    K = int(round(220 * 22050 / FS))
+    assert abs(Y[K] - 1.0) < 0.02
+    assert abs(np.sqrt(np.sum(np.delete(Y, K) ** 2) / 2) - 0.05) < 0.01
 
 
 def test_seam_metric_flags_a_bad_join():
     f0 = 261.6
     x = tone(f0, 4.0, [0.3, 1.1, 2.0, -1.0])[:, None]
     L, K, _ = fit_loop_length(1.0, FS, f0)
-    loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    loop, _ = make_loop(x, FS, L, basis='dct')
     good = seam_metrics(loop, FS)
     bad = seam_metrics(x[:L + 37], FS)  # a raw cut, not a whole number of periods
     assert good['seam_flux_ratio'] < 2.0
@@ -121,7 +124,7 @@ def test_off_grid_partial_is_moved_not_split():
     n = np.arange(4 * FS)
     x = np.cos(2 * np.pi * f * n / FS + 0.4)[:, None]
     for basis in ('dct', 'dft'):
-        loop, _ = make_loop(x, FS, L, mode='snap', basis=basis)
+        loop, _ = make_loop(x, FS, L, basis=basis)
         Y = np.abs(np.fft.rfft(loop[:, 0])) * 2 / L
         big, small = max(Y[300], Y[301]), min(Y[300], Y[301])
         assert big > 0.9 and small < 0.1, (basis, Y[299:303])
@@ -145,7 +148,7 @@ def test_stereo_signs_keep_the_image():
     delay = 13                                                 # right = left delayed 0.3 ms + own noise
     right = np.concatenate([np.zeros(delay), left[:-delay]])
     x = np.stack([left + 0.05 * rng.standard_normal(len(n)), right + 0.05 * rng.standard_normal(len(n))], 1)
-    loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    loop, _ = make_loop(x, FS, L, basis='dct')
     c_orig = np.corrcoef(x[:, 0], x[:, 1])[0, 1]
     c_loop = np.corrcoef(loop[:, 0], loop[:, 1])[0, 1]
     assert c_loop > 0.5 and abs(c_loop - c_orig) < 0.3, (c_orig, c_loop)
@@ -185,18 +188,34 @@ def test_harmonic_lock_removes_loop_rate_wah():
     """A tone whose pitch drifts by a few cents during the analysis spreads each harmonic over
     neighbouring grid bins; those beat with the harmonic once per loop.  Locking the harmonics
     to h*K must leave the neighbours far down."""
-    from dctloop.core import harmonic_am
     f0 = 440.0
     n = np.arange(4 * FS)
     drift = 1 + 0.003 * np.sin(2 * np.pi * 0.2 * n / FS)              # +-5 cents, slow
     ph = 2 * np.pi * np.cumsum(f0 * drift) / FS
     x = sum(a * np.cos(h * ph) for h, a in enumerate([1, .5, .4, .3, .2], 1))[:, None]
     L, K, _ = fit_loop_length(0.25, FS, f0)
-    free, _ = make_loop(x, FS, L, mode='snap', basis='dct')
-    locked, _ = make_loop(x, FS, L, mode='snap', basis='dct', lock=f0)
+    free, _ = make_loop(x, FS, L, basis='dct')
+    locked, _ = make_loop(x, FS, L, basis='dct', lock=f0)
     wah_free = harmonic_am(free, FS, f0, nharm=5)['max_harmonic_am_db']
     wah_locked = harmonic_am(locked, FS, f0, nharm=5)['max_harmonic_am_db']
     assert wah_free > 3.0, wah_free
     assert wah_locked < 0.5, wah_locked
     Y = np.abs(np.fft.rfft(locked[:, 0])) * 2 / L
     assert np.allclose([Y[h * K] for h in range(1, 6)], [1, .5, .4, .3, .2], rtol=0.1)
+
+
+def test_loop_signal_end_to_end():
+    """The array-level entry point: f0 estimated, loop fitted to whole periods, both bases."""
+    f0 = 311.13
+    n = np.arange(3 * FS)
+    x = sum(a * np.cos(2 * np.pi * h * f0 * n / FS + h) for h, a in enumerate([1, .5, .3], 1))
+    x = np.stack([x, np.roll(x, 7)], 1) + 0.01 * np.random.default_rng(0).standard_normal((len(n), 2))
+    for basis in ('dct', 'dft'):
+        loop, info = loop_signal(x, FS, 0.5, basis=basis, hint=310.0)
+        assert abs(info['f0_used'] - f0) < 0.05, info['f0_used']
+        assert info['L'] == len(loop) and abs(info['seconds'] - 0.5) < 0.01
+        assert abs(info['K'] * FS / info['L'] - f0) / f0 < 1e-4
+        assert harmonic_am(loop, FS, info['f0'], nharm=3)['max_harmonic_am_db'] < 0.5
+    # too short an input shortens the loop instead of failing
+    loop, info = loop_signal(x[:int(0.7 * FS)], FS, 0.5, f0=f0)
+    assert info['shortened'] and len(loop) <= int(0.35 * FS)

@@ -23,8 +23,10 @@ import numpy as np
 import soundfile as sf
 from scipy.fft import irfft
 
-from .core import (_fade, _rms, analyse_on_grid, estimate_f0, find_body, fit_loop_length, load_audio,
-                   note_from_name, refine_f0, seam_metrics, spectrum_match)
+from .core import _rms, analyse_on_grid, fit_loop_length
+from .metrics import seam_metrics, spectrum_match
+from .pipeline import _fade, find_body, load_audio
+from .pitch import estimate_f0, note_from_name, refine_f0
 
 
 def fit_short_loop(fs: int, f0: float, max_periods: int = 32, tol_cents: float = 0.5,
@@ -68,7 +70,7 @@ def split_loop(seg: np.ndarray, fs: int, f0: float, resid_seconds: float = 3.0,
     q = N // L_a
     off = (N - q * L_a) // 2
     x = seg[off:off + q * L_a]
-    a, ref, diag = analyse_on_grid(x, L_a, 'snap')                 # (M_a+1, C)
+    a, ref, diag = analyse_on_grid(x, L_a)                 # (M_a+1, C)
     M_a = L_a // 2
     a[0] = 0.0
     a[M_a] = 0.0
