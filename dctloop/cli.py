@@ -38,6 +38,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument('--harm-periods', type=int, help='--split: periods in the harmonic loop (default: shortest within 0.5 cent)')
     p.add_argument('--harm-bw', type=float, help='--split: sum +-this many cents around each harmonic into it (default: peak line only)')
     p.add_argument('--no-sfizz', action='store_true', help='--split: skip the sfizz render check')
+    p.add_argument('--lock', type=float, default=1.5, metavar='BINS',
+                   help='harmonic locking: everything within this many grid bins of h*f0 goes to the '
+                        'harmonic bin exactly (default 1.5; 0 disables)')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('-v', '--verbose', action='store_true')
     return p
@@ -67,7 +70,8 @@ def main(argv=None) -> int:
                 continue
             r = process(path, a.out, loop=a.loop, mode=a.mode, basis=a.basis, phase=a.phase,
                         f0=a.f0, fit=not a.no_fit, start=a.start, dur=a.dur,
-                        periods=a.periods, preview=not a.no_preview, seed=a.seed, verbose=True)
+                        periods=a.periods, preview=not a.no_preview, seed=a.seed, lock_width=a.lock,
+                        verbose=True)
         except Exception as e:  # keep going through a directory
             print(f'  [{os.path.basename(path)}] FAILED: {e}', file=sys.stderr)
             if a.verbose:

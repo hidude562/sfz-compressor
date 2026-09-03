@@ -73,6 +73,22 @@ Outputs per note: `<name>_loop.wav` (the bare loop, 24-bit), `<name>_preview.wav
    `gain` is ≈1 when the calibration is right and grows in `comb` mode by the
    noise it removed.
 
+## Harmonic locking (`--lock`, default 1.5 grid bins)
+
+Any energy that lands on the grid bins right next to a harmonic (bin h·K ± 1)
+beats with that harmonic at exactly `1/L` Hz — 4 Hz for a 0.25 s loop — and in
+the DCT every partial is phase-locked to the seam, so the beat becomes a clean
+amplitude swell once per loop ("wah"). Measured on the SSO trumpet at 0.25 s the
+neighbours of harmonic 3 were only 6.6 dB below the harmonic (an 8.8 dB swell),
+because the player's pitch drifts a few cents during the 3.5 s analysis and the
+averaged spectrum smears each harmonic over several 4 Hz bins; a string section's
+chorus does the same. Since f0 is known per channel, every harmonic's energy
+within ±`--lock` grid bins of `h·f0·L/fs`, plus the falling skirt beyond, is
+assigned to exactly that bin before anything else. Harmonics come out perfectly
+stable and exactly harmonic; only the genuine noise floor between them keeps its
+`L`-periodic texture. `--lock 0` disables it. `wah` in the reports is the worst
+peak-to-peak swell at `1/L` Hz over the first ten harmonics (0 with locking).
+
 ## What the numbers mean
 
 * `seam×` / `mid×`: spectral flux at the loop seam (and at the palindrome's
@@ -84,6 +100,7 @@ Outputs per note: `<name>_loop.wav` (the bare loop, 24-bit), `<name>_preview.wav
   grid, per channel (0 = every partial on a grid line, 0.25 = random). Only
   informative — peaks are moved to the grid either way.
 * `det`: left/right detune in cents (refined f0 per channel).
+* `wah`: worst harmonic swell at the loop rate, dB peak-to-peak (see above).
 
 ## Two loops instead of one: `--split`
 

@@ -168,7 +168,8 @@ def fit_loop_length(T: float, fs: int, f0: float, search: int = 2) -> tuple[int,
 
 # --------------------------------------------------------------------------- the loop itself
 
-def _assign_to_grid(P: np.ndarray, npeaks_diag: int = 20) -> tuple[np.ndarray, float]:
+def _assign_to_grid(P: np.ndarray, npeaks_diag: int = 20, lock: np.ndarray | None = None,
+                    lock_width: float = 1.5) -> tuple[np.ndarray, float]:
     """Distribute one channel's averaged 2L-point periodogram P (bins k*fs/(2L), k = 0..L) onto
     the loop grid m = k/2.  Every local maximum is a spectral peak: its main lobe (|k - k_peak|
     <= 1.5, k_peak parabolic-interpolated) goes *whole* to the nearest grid bin, so an off-grid
@@ -176,11 +177,31 @@ def _assign_to_grid(P: np.ndarray, npeaks_diag: int = 20) -> tuple[np.ndarray, f
     at 1/L Hz.  Bins left over (the noise floor between peaks) go to their grid bin if even, or
     are split between the two neighbours in proportion to their energy if odd.  Every bin is
     used exactly once, so energy is conserved.  Also returns the energy-weighted mean distance
-    of the strongest peaks from the grid (0 = all on grid, 0.25 = random)."""
+    of the strongest peaks from the grid (0 = all on grid, 0.25 = random).
+
+    ``lock``: grid bins where harmonics are known to belong (h * f0 * L / fs).  Everything within
+    +-lock_width grid bins of such a bin, plus the monotonically falling skirt beyond, is assigned
+    to exactly that bin first.  Without this, a harmonic that drifts by a few cents during the
+    analysis (or is broadened by chorus) leaves energy on the neighbouring grid bins, and that
+    energy beats with the harmonic at exactly 1/L Hz — a "wah" once per loop."""
     nb = len(P)
     M = (nb - 1) // 2
     E = np.zeros(M + 1)
     taken = np.zeros(nb, bool)
+    if lock is not None and lock_width > 0:
+        w = int(round(2 * lock_width))
+        for m in np.asarray(lock, dtype=int):
+            if m < 1 or m >= M:
+                continue
+            lo, hi = max(0, 2 * m - w), min(nb - 1, 2 * m + w)
+            while lo > 0 and not taken[lo - 1] and P[lo - 1] < P[lo]:
+                lo -= 1
+            while hi < nb - 1 and not taken[hi + 1] and P[hi + 1] < P[hi]:
+                hi += 1
+            sel = np.arange(lo, hi + 1)
+            sel = sel[~taken[sel]]
+            E[m] += P[sel].sum()
+            taken[sel] = True
     interior = np.arange(1, nb - 1)
     pk = interior[(P[1:-1] > P[:-2]) & (P[1:-1] >= P[2:])]
     if pk.size:
@@ -216,7 +237,8 @@ def _assign_to_grid(P: np.ndarray, npeaks_diag: int = 20) -> tuple[np.ndarray, f
     return E, grid_offset
 
 
-def analyse_on_grid(x: np.ndarray, L: int, mode: str = 'snap') -> tuple[np.ndarray, np.ndarray, dict]:
+def analyse_on_grid(x: np.ndarray, L: int, mode: str = 'snap', lock_bins: list | None = None,
+                    lock_width: float = 1.5) -> tuple[np.ndarray, np.ndarray, dict]:
     """Amplitude of the sound at every loop-grid frequency m*fs/L, m = 0..L/2, per channel,
     plus a complex reference value per bin (for the phase / sign of the synthesis) and a
     diagnostics dict.
@@ -254,7 +276,8 @@ def analyse_on_grid(x: np.ndarray, L: int, mode: str = 'snap') -> tuple[np.ndarr
         E = np.zeros((M + 1, C))
         offs = []
         for c in range(C):
-            E[:, c], go = _assign_to_grid(Pbar[:, c])
+            lk = None if lock_bins is None else lock_bins[min(c, len(lock_bins) - 1)]
+            E[:, c], go = _assign_to_grid(Pbar[:, c], lock=lk, lock_width=lock_width)
             offs.append(go)
         E /= 1.5                                             # Hann main lobe: 1 + 0.25 + 0.25
         a = 2.0 * np.sqrt(E) / L                             # |X| = A * sum(w) / 2 = A * L / 2
@@ -273,7 +296,8 @@ def analyse_on_grid(x: np.ndarray, L: int, mode: str = 'snap') -> tuple[np.ndarr
 
 
 def make_loop(seg: np.ndarray, fs: int, L: int, mode: str = 'snap', basis: str = 'dct',
-              phase: str = 'orig', seed: int = 0, window: str | None = None,
+              phase: str = 'orig', seed: int = 0, lock: float | list | None = None,
+              lock_width: float = 1.5, window: str | None = None,
               sign: str | None = None) -> tuple[np.ndarray, dict]:
     """Build an L-sample loop from ``seg`` (N x C, N >= 2L).  Returns (loop, info).
 
@@ -283,6 +307,9 @@ def make_loop(seg: np.ndarray, fs: int, L: int, mode: str = 'snap', basis: str =
             cos(pi*m*(2n+1)/L) has wavelength L/m, so the result is exactly L-periodic (and a
             palindrome).  'dft' — same grid with complex phases, no mirror.
     phase : 'orig' takes each partial's phase (dct: its sign) from the input, 'random' draws it
+    lock  : f0 in Hz (one value, or one per channel): every harmonic h*f0 is locked to grid bin
+            round(h*f0*L/fs) with everything within +-lock_width grid bins of it (see
+            _assign_to_grid).  None disables harmonic locking.
     """
     if sign is not None:                      # backwards-compatible spelling
         phase = 'orig' if sign in ('center', 'cos', 'orig') else sign
@@ -300,7 +327,15 @@ def make_loop(seg: np.ndarray, fs: int, L: int, mode: str = 'snap', basis: str =
     rng = np.random.default_rng(seed)
     M = L // 2
 
-    a, ref, diag = analyse_on_grid(x, L, mode)               # (M+1, C)
+    lock_bins = None
+    if lock is not None and mode == 'snap':
+        f0s = np.atleast_1d(np.asarray(lock, dtype=float))
+        lock_bins = []
+        for f in f0s:
+            kf = f * L / fs
+            hmax = int(M / kf) if kf > 0 else 0
+            lock_bins.append(np.round(np.arange(1, hmax + 1) * kf).astype(int))
+    a, ref, diag = analyse_on_grid(x, L, mode, lock_bins=lock_bins, lock_width=lock_width)  # (M+1, C)
     a[0] = 0.0                                               # no DC
     a[M] = 0.0                                               # nothing at Nyquist
     if basis == 'dct':
@@ -342,7 +377,8 @@ def make_loop(seg: np.ndarray, fs: int, L: int, mode: str = 'snap', basis: str =
     gain = _rms(x) / _rms(loop)                              # ~1 if the calibration above is right
     loop = loop * gain
     info = dict(N=int(N), q=int(q), L=L, mode=mode, basis=basis, phase=phase, gain=float(gain),
-                analysis_offset=int(off), grid_hz=fs / L, **diag)
+                analysis_offset=int(off), grid_hz=fs / L,
+                lock_width=float(lock_width) if lock_bins is not None else 0.0, **diag)
     return loop, info
 
 
@@ -372,6 +408,31 @@ def seam_metrics(loop: np.ndarray, fs: int) -> dict:
                 mid_flux_ratio=ratio([1.5 * L, 2.5 * L]),
                 p95_flux_ratio=float(np.percentile(flux, 95) / med),
                 seam_step=float(np.max(np.abs(loop[0] - loop[-1])) / (np.max(np.abs(loop)) + 1e-12)))
+
+
+def harmonic_am(loop: np.ndarray, fs: int, f0: float | list, nharm: int = 10) -> dict:
+    """How much each harmonic 'wahs': the energy on the grid bins next to harmonic h (h*K +-1)
+    relative to the harmonic, and the resulting peak-to-peak amplitude modulation at 1/L Hz.
+    Returns the worst harmonic over channels (dB) plus the per-harmonic side/harm ratios."""
+    L = len(loop)
+    f0s = np.atleast_1d(np.asarray(f0, dtype=float))
+    worst, rows = 0.0, []
+    for c in range(loop.shape[1]):
+        Y = np.abs(np.fft.rfft(loop[:, c])) * 2 / L
+        kf = f0s[min(c, len(f0s) - 1)] * L / fs
+        for h in range(1, nharm + 1):
+            m = int(round(h * kf))
+            if m + 1 >= len(Y) or m < 2:
+                break
+            hv, sv = Y[m], Y[m - 1] + Y[m + 1]
+            if hv < 1e-6:
+                continue
+            side_db = 20 * math.log10(sv / hv + 1e-12)
+            am_db = 20 * math.log10((hv + sv) / (hv - sv)) if hv > sv else float('inf')
+            rows.append((c, h, round(side_db, 1)))
+            if hv > 0.02 * Y.max():                          # only harmonics that matter
+                worst = max(worst, am_db)
+    return dict(max_harmonic_am_db=float(worst), side_db=rows)
 
 
 def spectrum_match(seg: np.ndarray, fs: int, loop: np.ndarray, lo: float = 60.0,
@@ -451,7 +512,7 @@ def process(path: str, out_dir: str | None = None, loop: float = 1.5, mode: str 
             basis: str = 'dct', phase: str = 'orig', f0: float | None = None,
             fit: bool = True, start: float | None = None, dur: float | None = None,
             periods: int | None = None, preview: bool = True, stem: str | None = None,
-            seed: int = 0, verbose: bool = False) -> Result:
+            seed: int = 0, lock_width: float = 1.5, verbose: bool = False) -> Result:
     """Load a note, pick its sustain, build the loop, measure it, write the files."""
     import os
     x, fs = load_audio(path)
@@ -500,9 +561,13 @@ def process(path: str, out_dir: str | None = None, loop: float = 1.5, mode: str 
     seg = x[a:b]
 
     # ----- build + measure
-    lp, info = make_loop(seg, fs, L, mode=mode, basis=basis, phase=phase, seed=seed)
+    lock = [float(v) if np.isfinite(v) else f0_used for v in f0c] if (f0_used > 0 and lock_width > 0) else None
+    lp, info = make_loop(seg, fs, L, mode=mode, basis=basis, phase=phase, seed=seed,
+                         lock=lock, lock_width=lock_width)
     seg_used = seg[info['analysis_offset']:info['analysis_offset'] + info['N']]
     seam = seam_metrics(lp, fs)
+    if f0_used > 0:
+        seam.update(harmonic_am(lp, fs, [float(v) if np.isfinite(v) else f0_used for v in f0c]))
     spec = spectrum_match(seg_used, fs, lp)
 
     # ----- write
@@ -539,5 +604,5 @@ def process(path: str, out_dir: str | None = None, loop: float = 1.5, mode: str 
               f'({K} periods, grid {cents:+.2f}c) seg={info["N"] / fs:.2f}s q={info["q"]} '
               f'seam×{seam["seam_flux_ratio"]:.2f} mid×{seam["mid_flux_ratio"]:.2f} '
               f'p95×{seam["p95_flux_ratio"]:.2f} ltas {spec["ltas_mean_abs_db"]:.2f}dB '
-              f'grid-off {info.get("grid_offset")}')
+              f'grid-off {info.get("grid_offset")} wah {seam.get("max_harmonic_am_db", 0):.1f}dB')
     return res

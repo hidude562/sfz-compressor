@@ -179,3 +179,24 @@ def test_split_separates_harmonics_from_noise():
     # short-loop fit
     L2, K2, c2 = fit_short_loop(FS, 440.0)
     assert abs(c2) <= 0.5 and L2 == int(round(K2 * FS / 440.0))
+
+
+def test_harmonic_lock_removes_loop_rate_wah():
+    """A tone whose pitch drifts by a few cents during the analysis spreads each harmonic over
+    neighbouring grid bins; those beat with the harmonic once per loop.  Locking the harmonics
+    to h*K must leave the neighbours far down."""
+    from dctloop.core import harmonic_am
+    f0 = 440.0
+    n = np.arange(4 * FS)
+    drift = 1 + 0.003 * np.sin(2 * np.pi * 0.2 * n / FS)              # +-5 cents, slow
+    ph = 2 * np.pi * np.cumsum(f0 * drift) / FS
+    x = sum(a * np.cos(h * ph) for h, a in enumerate([1, .5, .4, .3, .2], 1))[:, None]
+    L, K, _ = fit_loop_length(0.25, FS, f0)
+    free, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    locked, _ = make_loop(x, FS, L, mode='snap', basis='dct', lock=f0)
+    wah_free = harmonic_am(free, FS, f0, nharm=5)['max_harmonic_am_db']
+    wah_locked = harmonic_am(locked, FS, f0, nharm=5)['max_harmonic_am_db']
+    assert wah_free > 3.0, wah_free
+    assert wah_locked < 0.5, wah_locked
+    Y = np.abs(np.fft.rfft(locked[:, 0])) * 2 / L
+    assert np.allclose([Y[h * K] for h in range(1, 6)], [1, .5, .4, .3, .2], rtol=0.1)
