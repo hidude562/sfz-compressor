@@ -66,7 +66,7 @@ def _loop_map(r):
 
 
 def write_report(rows: list[dict], path: str, q: float, sfz_texts: dict[str, str] | None = None,
-                 budget: float | None = None) -> None:
+                 budget: float | None = None, method: str = "hybrid") -> None:
     sfz_texts = sfz_texts or {}
     groups: dict[str, list[dict]] = {}
     for r in rows:
@@ -114,6 +114,14 @@ def write_report(rows: list[dict], path: str, q: float, sfz_texts: dict[str, str
                           f'residual {"on" if r["residual"] else "off"}', f'{r["K"]} partials']
             if r.get("total_s"):
                 facts.append(f'{r["total_s"]:.2f} s of audio on disk')
+            if r.get("mode"):
+                facts.append(f'path {r["mode"]}')
+            if r.get("method") == "auto" and r.get("log"):
+                facts.append(str(r["log"][0]))
+            dg = r.get("diagnostics") or {}
+            if dg and "seam_flux_db" in dg:
+                facts.append(f'seam flux {dg["seam_flux_db"]:+.1f} dB vs interior p90'
+                             + (f', detune rms {dg["detune_cents_rms"]:.1f} c' if "detune_cents_rms" in dg else ""))
             facts.append(f'{r["size_kb"]:.0f} kB vs {r["orig_kb"]:.0f} kB original')
             sfz = sfz_texts.get(r["label"], "")
             log = "\n".join(r.get("log", []))
@@ -143,6 +151,8 @@ def write_report(rows: list[dict], path: str, q: float, sfz_texts: dict[str, str
     tot_orig = sum(r["orig_kb"] for r in rows)
     title = "Sonatina Half-Second Bench" if budget is not None and abs(budget - 0.5) < 1e-6 else (
         f"Sonatina {budget:g}-Second Bench" if budget is not None else "Sonatina Loop Bench")
+    if method == "laroche":
+        title = "Sonatina Loop-Locked Bench" if budget is None else f"Loop-Locked {title.replace('Sonatina ', '')}"
     budget_line = (f" · hard budget <b>{budget:g} s</b> of audio per sample (all files together)" if budget is not None else "")
     page = f'''<title>{title}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -201,7 +211,7 @@ pre.log{{color:var(--muted)}}
 </style>
 <main>
 <header>
-  <span class="eyebrow">Sonatina Symphonic Orchestra · q = {q}{" · budget " + format(budget, "g") + " s" if budget is not None else ""}</span>
+  <span class="eyebrow">Sonatina Symphonic Orchestra · q = {q}{" · budget " + format(budget, "g") + " s" if budget is not None else ""} · method {method}</span>
   <h1>{title}</h1>
   <p class="lede">Each sample was analysed into per-channel partial tracks plus a noise residual, turned into an
   exactly repeating loop with SFZ envelopes, rendered back with sfizz for the length of the original note, and scored

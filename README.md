@@ -161,6 +161,53 @@ size), which is compensated so all stages still sum sample-coherently;
 bigger). The 19-sample demo under a 0.5 s budget lands at 12–87 kB per sample
 (originals 282–1520 kB) in about 70 s total.
 
+## The loop-locked (Laroche) method — `sfzc/laroche.py`
+
+A second implementation of Algorithm A, following the "Reconstructing sustain
+segments into exactly periodic loops" report, selectable with
+`--method laroche` (`--method auto`, the default, runs both and keeps the one
+Metric B prefers):
+
+* **Frozen, loop-locked partials.** Every partial is frozen to its loop-region
+  statistics (median frequency per channel, detrended mean amplitude, analysed
+  phase at the loop start) and locked to the loop's DFT grid: `k = round(f·L/fs)`,
+  `f' = k·fs/L` — for a stationary partial this is exactly Laroche's minimal
+  phase-closing frequency nudge. The oscillator-bank resynthesis is therefore
+  periodic by construction (integer cycles, verified to 1e-12 by `sfzc diagnose`).
+* **L selection** by an energy- and JND-weighted detuning cost
+  (JND ≈ 3 Hz below 500 Hz, 0.6 % above), a mild pull towards Laroche's
+  ~166 periods, a vibrato-cycle term, and the size budget; candidates are drawn
+  from every factor-2 length band and arbitrated by Metric B.
+* **Loop start** chosen among a few positions after the attack by the quality
+  of the coherent envelope-stage fit, so struck notes start after their
+  non-exponential prompt decay.
+* **Residual as filtered noise in its own loop** whose length differs from the
+  harmonic loop, so the two repetition periods never coincide (combined period
+  = lcm). Under a budget the noise loop takes whatever samples remain.
+* **DC removal**, seam diagnostics (tiled spectral flux at the seam vs the
+  interior, sample continuity, DC, integer-cycle and detuning checks) stored in
+  the JSON and shown on the report page; `python3 -m sfzc diagnose x.sfz` runs
+  them on any SFZ loop.
+* **Stage 2 opcodes**: `--lfo` (gentle `pitchlfo`/`amplfo`), `--loop-crossfade S`
+  (sfizz/OpenMPT safety net), `--round-robin 2` (a second loop set from later
+  in the sustain via `seq_length`/`seq_position`).
+* **Stage 3** `--refine`: PyTorch optimisation of per-partial and per-noise-band
+  gains against a multi-resolution, level-normalised log-STFT loss between the
+  tiled loop and the source around the loop start (frequencies stay locked).
+  On the SSO material it lowers its own loss but not Metric B, so it is off by
+  default.
+* Sustains with vibrato/tremolo (> 3 cents / > 1.5 dB) are handed to the
+  tracked parametric path (parameter-domain closing keeps the movement), as the
+  report recommends; `--frozen on` forces freezing.
+
+Measured on the demo set the two methods are complementary: the loop-locked
+path wins on decaying/mallet notes and under tight budgets (piano at 0.5 s:
+0.40 vs 0.15), the tracked/hybrid path on long sustains with room (horn 0.58 vs
+0.48). One caveat specific to this library: its "stereo" samples carry
+detuned left/right content that beats; a stationary model flattens that beat
+(the tracked path reproduces it as micro-variation), and with loops shorter
+than ~1 s the grid cannot keep both channels' fundamentals on it.
+
 ## Algorithm B in detail
 
 `metric.evaluate_recreation(original, rendered, sr, held_range, loop_period_s, loop_start_s)`

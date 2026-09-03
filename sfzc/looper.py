@@ -44,6 +44,14 @@ class LoopConfig:
     delay_offset_samples: int = 2     # sfizz starts a `delay`ed voice this many samples late (measured)
     stage_files: str = "delay"        # 'delay': extra stage/noise files hold only the loop and start via the
                                       # delay opcode; 'padded': zero-filled attack (player agnostic, bigger)
+    method: str = "hybrid"            # 'hybrid': tracked partials / hybrid loops (default path)
+                                      # 'laroche': frozen loop-locked oscillator bank + separate noise loop (sfzc.laroche)
+    frozen: str = "auto"              # laroche: 'auto' (frozen unless vibrato/tremolo), 'on', 'off'
+    target_periods: float = 166.0     # laroche: preferred loop length in fundamental periods (Laroche's 0.5/0.003)
+    refine: bool = False              # laroche: Stage-3 MR-STFT refinement of partial / noise-band gains (PyTorch)
+    lfo: bool = False                 # laroche: add gentle pitch/amp LFO opcodes to mask loop periodicity
+    loop_crossfade_s: float = 0.0     # laroche: emit loop_crossfade (sfizz/OpenMPT) as a safety net
+    round_robin: int = 1              # laroche: number of alternating loop sets (seq_length/seq_position)
 
     def resolved(self, K_all: int) -> dict:
         q = float(np.clip(self.q, 0.0, 1.0))
@@ -905,4 +913,46 @@ class SampleLooper:
 
 
 def process_sample(path: str, out_dir: str, cfg: LoopConfig | None = None) -> LoopResult:
+    cfg = cfg or LoopConfig()
+    if cfg.method == "laroche":
+        from .laroche import LarocheLooper
+
+        return LarocheLooper(path, cfg).run(out_dir)
+    if cfg.method == "auto" and cfg.verify:
+        # run both methods and keep the one Metric B prefers
+        import shutil
+        from dataclasses import replace
+
+        from .laroche import LarocheLooper
+
+        tmp = os.path.join(out_dir, "_auto_laroche")
+        os.makedirs(tmp, exist_ok=True)
+        r_l = LarocheLooper(path, replace(cfg, method="laroche")).run(tmp)
+        r_h = SampleLooper(path, replace(cfg, method="hybrid")).run(out_dir)
+        s_l = (r_l.metric or {}).get("score", -1.0)
+        s_h = (r_h.metric or {}).get("score", -1.0)
+        if r_l.klass != "oneshot" and s_l > s_h:
+            # promote the laroche files over the hybrid ones
+            for p in r_h.wav_paths + [r_h.sfz_path]:
+                if os.path.exists(p):
+                    os.remove(p)
+            moved = []
+            for p in r_l.wav_paths + [r_l.sfz_path, os.path.splitext(r_l.sfz_path)[0] + ".json"]:
+                dst = os.path.join(out_dir, os.path.basename(p))
+                shutil.move(p, dst)
+                moved.append(dst)
+            r_l.sfz_path = moved[-2]
+            r_l.wav_paths = moved[:-2]
+            if r_l.info.get("baseline"):
+                bl = r_l.info["baseline"]
+                for p in [bl, bl[:-4] + "." + cfg.out_format]:
+                    if os.path.exists(p):
+                        shutil.move(p, os.path.join(out_dir, os.path.basename(p)))
+                r_l.info["baseline"] = os.path.join(out_dir, os.path.basename(bl))
+            r_l.info["log"] = [f"auto: laroche {s_l:.3f} > hybrid {s_h:.3f}"] + r_l.info.get("log", [])
+            shutil.rmtree(tmp, ignore_errors=True)
+            return r_l
+        r_h.info["log"] = [f"auto: hybrid {s_h:.3f} >= laroche {s_l:.3f}"] + r_h.info.get("log", [])
+        shutil.rmtree(tmp, ignore_errors=True)
+        return r_h
     return SampleLooper(path, cfg).run(out_dir)

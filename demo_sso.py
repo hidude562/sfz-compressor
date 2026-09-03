@@ -77,6 +77,10 @@ def main() -> int:
     ap.add_argument("--only", default=None, help="comma separated substrings to select demo entries")
     ap.add_argument("--candidates", type=int, default=4)
     ap.add_argument("--max-duration", type=float, default=None, help="hard budget in seconds of audio per sample")
+    ap.add_argument("--method", default="auto", choices=["auto", "hybrid", "laroche"])
+    ap.add_argument("--refine", action="store_true")
+    ap.add_argument("--lfo", action="store_true")
+    ap.add_argument("--loop-crossfade", type=float, default=0.0)
     ap.add_argument("--play-only", action="store_true", help="play the A/B files of an existing run and exit")
     ap.add_argument("--report-only", action="store_true", help="rebuild report.html from an existing run and exit")
     args = ap.parse_args()
@@ -86,7 +90,7 @@ def main() -> int:
         for r in rows:
             sfz_p = os.path.join(os.path.dirname(r["rec_wav"]), os.path.basename(os.path.dirname(r["rec_wav"])) + ".sfz")
             r["sfz"] = open(sfz_p).read() if os.path.exists(sfz_p) else ""
-        write_report(rows, os.path.join(args.out, "report.html"), args.q, args.max_duration)
+        write_report(rows, os.path.join(args.out, "report.html"), args.q, args.max_duration, args.method)
         return 0
     if args.play_only:
         rows = json.load(open(os.path.join(args.out, "summary.json")))
@@ -110,10 +114,15 @@ def main() -> int:
             continue
         t0 = time.time()
         fmt = "flac" if path.lower().endswith(".flac") else "wav"
-        lp = SampleLooper(path, LoopConfig(q=args.q, n_candidates=args.candidates, baseline=True, out_format=fmt,
-                                           max_total_s=args.max_duration))
+        cfg = LoopConfig(q=args.q, n_candidates=args.candidates, baseline=True, out_format=fmt,
+                         max_total_s=args.max_duration, method=args.method, refine=args.refine, lfo=args.lfo,
+                         loop_crossfade_s=args.loop_crossfade)
+        from sfzc.looper import process_sample
+
+        lp = SampleLooper(path, cfg)  # for name / render protocol only
         outdir = os.path.join(args.out, lp.name)
-        r = lp.run(outdir)
+        r = process_sample(path, outdir, cfg)
+        lp.analyse()
         note_on, render_s, orig, held = lp.render_protocol()
         orig_p = os.path.join(outdir, "A_original.wav")
         rec_p = os.path.join(outdir, "B_recreation.wav")
@@ -137,7 +146,8 @@ def main() -> int:
         row = dict(label=label, file=os.path.relpath(path, ROOT), klass=r.klass, key=r.key, cents=r.cents, f0=r.f0,
                    B=r.B, loop_ms=r.loop_len / lp.sr * 1000, loop_periods=r.loop_len * r.f0 / lp.sr if r.f0 else 0,
                    stages=r.stages, residual=r.residual, K=r.K, dur=r.duration_s, orig_dur=r.original_duration_s,
-                   total_s=r.total_audio_s, budget=args.max_duration,
+                   total_s=r.total_audio_s, budget=args.max_duration, method=args.method, mode=r.info.get("mode"),
+                   diagnostics=r.info.get("diagnostics"),
                    size_kb=r.size_bytes / 1024, orig_kb=os.path.getsize(path) / 1024,
                    score=m.get("score"), base_score=b.get("score"),
                    terms={k: m.get(k) for k in ("D_spec", "D_loud", "D_seam", "D_var", "D_pitch", "seam_prominence_db",
@@ -159,15 +169,15 @@ def main() -> int:
     with open(os.path.join(args.out, "summary.json"), "w") as f:
         json.dump([{k: v for k, v in r.items() if k != "sfz"} for r in rows], f, indent=1, default=float)
     if not args.no_report:
-        write_report(rows, os.path.join(args.out, "report.html"), args.q, args.max_duration)
+        write_report(rows, os.path.join(args.out, "report.html"), args.q, args.max_duration, args.method)
     return 0
 
 
-def write_report(rows: list[dict], path: str, q: float, budget: float | None = None) -> None:
+def write_report(rows: list[dict], path: str, q: float, budget: float | None = None, method: str = "hybrid") -> None:
     from sfzc.report import write_report as _wr
 
     _wr([{k: v for k, v in r.items() if k != "sfz"} for r in rows], path, q, {r["label"]: r["sfz"] for r in rows},
-        budget=budget)
+        budget=budget, method=method)
     print(f"report: {path}")
 
 

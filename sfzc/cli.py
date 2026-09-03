@@ -37,7 +37,9 @@ def cmd_loop(args: argparse.Namespace) -> int:
                      K_max=args.partials, n_candidates=args.candidates, verify=not args.no_verify,
                      note_hint=args.note, baseline=args.baseline, out_format=args.format, fileg=not args.no_fileg,
                      hybrid=args.hybrid, f0_method=args.f0_method, max_total_s=args.max_duration,
-                     stage_files=args.stage_files)
+                     stage_files=args.stage_files, method=args.method, frozen=args.frozen,
+                     target_periods=args.target_periods, refine=args.refine, lfo=args.lfo,
+                     loop_crossfade_s=args.loop_crossfade, round_robin=args.round_robin)
     rows = []
     results = []
     if args.jobs > 1 and len(paths) > 1:
@@ -96,6 +98,34 @@ def cmd_score(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_diagnose(args: argparse.Namespace) -> int:
+    """Seam diagnostics of the first looped region of an SFZ (report section 5)."""
+    import re
+
+    from . import dsp
+    from .diagnostics import diagnose_loop, format_report
+
+    txt = open(args.sfz).read()
+    m = re.search(r"sample=(\S+).*?loop_start=(\d+).*?loop_end=(\d+)", txt, re.S)
+    if not m:
+        print("no looped region found", file=sys.stderr)
+        return 2
+    wav = os.path.join(os.path.dirname(os.path.abspath(args.sfz)), m.group(1))
+    ls, le = int(m.group(2)), int(m.group(3))
+    x, sr = dsp.load_audio(wav)
+    locked = orig = None
+    jp = os.path.splitext(args.sfz)[0] + ".json"
+    if os.path.exists(jp):
+        j = json.load(open(jp))
+        info = j.get("info", {})
+        if "diagnostics" in info and "locked_freqs" in info.get("diagnostics", {}):
+            pass
+    d = diagnose_loop(x[ls: le + 1], sr, locked, orig)
+    print(f"{wav}  loop {ls}..{le}")
+    print(format_report(d))
+    return 0
+
+
 def cmd_render(args: argparse.Namespace) -> int:
     from . import dsp
     from .render import render_sfz
@@ -130,6 +160,15 @@ def main(argv: list[str] | None = None) -> int:
                    help="hard budget: total seconds of audio over all files written for a sample")
     a.add_argument("--stage-files", default="delay", choices=["delay", "padded"],
                    help="extra stage/noise files: loop-only + delay opcode (sfizz-calibrated) or zero-padded")
+    a.add_argument("--method", default="auto", choices=["auto", "hybrid", "laroche"],
+                   help="hybrid: tracked partials / original-audio hybrid loops; laroche: frozen loop-locked "
+                        "oscillator bank; auto: run both, keep the better by Metric B")
+    a.add_argument("--frozen", default="auto", choices=["auto", "on", "off"], help="laroche: freeze partials")
+    a.add_argument("--target-periods", type=float, default=166.0, help="laroche: preferred loop length in periods")
+    a.add_argument("--refine", action="store_true", help="laroche: PyTorch MR-STFT refinement of partial/noise gains")
+    a.add_argument("--lfo", action="store_true", help="laroche: add gentle pitch/amp LFO opcodes")
+    a.add_argument("--loop-crossfade", type=float, default=0.0, help="laroche: loop_crossfade seconds (sfizz/OpenMPT)")
+    a.add_argument("--round-robin", type=int, default=1, help="laroche: alternating loop sets")
     a.add_argument("--hybrid", default="auto", choices=["auto", "on", "off"],
                    help="keep original audio in the loop and resynthesise only a phase-closing bridge (sustain class)")
     a.add_argument("-v", "--verbose", action="store_true")
@@ -143,6 +182,9 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--loop-start", type=float, default=None, help="loop start in seconds")
     s.add_argument("-o", "--out", default=None, help="write the rendered audio")
     s.set_defaults(func=cmd_score)
+    dg = sub.add_parser("diagnose", help="seam diagnostics (tiled spectral flux, continuity, DC) of an SFZ loop")
+    dg.add_argument("sfz")
+    dg.set_defaults(func=cmd_diagnose)
     r = sub.add_parser("render", help="render one note of an SFZ with sfizz")
     r.add_argument("sfz")
     r.add_argument("--key", type=int, required=True)
