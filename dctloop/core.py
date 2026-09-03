@@ -269,17 +269,18 @@ def make_loop(seg: np.ndarray, fs: int, L: int, basis: str = 'dct', phase: str =
 
 
 def loop_signal(x: np.ndarray, fs: int, seconds: float = 1.5, *, basis: str = 'dct',
-                f0: float | list | None = None, hint: float | None = None, fit: bool = True,
-                periods: int | None = None, lock: float = 1.5, phase: str = 'orig',
-                seed: int = 0) -> tuple[np.ndarray, dict]:
+                f0: float | list | None = None, hint: float | None = None, use_hint: bool = True,
+                fit: bool = True, periods: int | None = None, lock: float = 1.5,
+                phase: str = 'orig', seed: int = 0) -> tuple[np.ndarray, dict]:
     """Loop an array of steady sustain.  The one-call entry point for signals in memory.
 
     x        : (N,) or (N, C) float samples of the sustained part of a note (no attack/release)
     seconds  : target loop length; rounded to an integer number of periods (``fit``), and
                shortened if x is shorter than two loops
     basis    : 'dct' or 'dft'
-    f0       : fundamental in Hz (one value or one per channel).  None: pYIN + refinement, with
-               ``hint`` (e.g. from the file name) narrowing the search
+    f0       : fundamental in Hz (one value or one per channel).  None: taken from ``hint``
+               (e.g. the note in the file name) when the spectrum bears the hint out, else
+               pYIN; ``use_hint=False`` always uses pYIN.  See pitch.f0_per_channel
     periods  : instead of ``seconds``, exactly this many f0 periods
     lock     : harmonic-lock half-width in grid bins (0 disables)
     Returns (loop, info) with info['f0'] per channel, info['K'] periods, info['L'] samples,
@@ -288,7 +289,7 @@ def loop_signal(x: np.ndarray, fs: int, seconds: float = 1.5, *, basis: str = 'd
     from .pitch import f0_per_channel
     if x.ndim == 1:
         x = x[:, None]
-    f0c = f0_per_channel(x, fs, f0, hint)
+    f0c, pitch_info = f0_per_channel(x, fs, f0, hint, use_hint=use_hint, detail=True)
     good = f0c[np.isfinite(f0c)]
     f0_used = float(np.exp(np.mean(np.log(good)))) if good.size else 0.0
     n = len(x)
@@ -314,5 +315,5 @@ def loop_signal(x: np.ndarray, fs: int, seconds: float = 1.5, *, basis: str = 'd
     loop, info = make_loop(x, fs, L, basis=basis, phase=phase, lock=lock_f0, lock_width=lock, seed=seed)
     detune = 1200 * math.log2(f0c[-1] / f0c[0]) if (len(f0c) > 1 and good.size == len(f0c)) else 0.0
     info.update(f0=[float(v) for v in f0c], f0_used=f0_used, detune_cents=float(detune), K=int(K),
-                grid_cents=float(cents), seconds=L / fs, shortened=shortened)
+                grid_cents=float(cents), seconds=L / fs, shortened=shortened, pitch=pitch_info)
     return loop, info

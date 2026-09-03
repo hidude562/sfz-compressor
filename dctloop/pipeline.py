@@ -97,12 +97,13 @@ class LoopResult:
 
 
 def loop_file(path: str, out_dir: str | None = None, seconds: float = 1.5, *, basis: str = 'dct',
-              f0: float | None = None, fit: bool = True, periods: int | None = None,
-              lock: float = 1.5, phase: str = 'orig', start: float | None = None,
+              f0: float | None = None, use_hint: bool = True, fit: bool = True,
+              periods: int | None = None, lock: float = 1.5, phase: str = 'orig', start: float | None = None,
               dur: float | None = None, preview: bool = True, stem: str | None = None,
               seed: int = 0, verbose: bool = False) -> LoopResult:
     """Loop a recorded note.  Picks the sustain automatically (or ``start``/``dur`` seconds),
-    takes the note name in the file name as a pitch hint, builds the loop with ``loop_signal``,
+    takes the note name in the file name as the pitch (verified against the spectrum, else
+    pYIN — see pitch.f0_per_channel; ``use_hint=False`` forces pYIN), builds the loop,
     measures it, and — if ``out_dir`` is given — writes ``<stem>_loop.wav`` (24-bit),
     ``<stem>_preview.wav`` (original, gap, loop repeated) and ``<stem>.json``."""
     x, fs = load_audio(path)
@@ -120,8 +121,8 @@ def loop_file(path: str, out_dir: str | None = None, seconds: float = 1.5, *, ba
     seg = x[a:b]
     hint = f0 or note_from_name(name)
 
-    lp, info = loop_signal(seg, fs, seconds, basis=basis, f0=f0, hint=hint, fit=fit,
-                           periods=periods, lock=lock, phase=phase, seed=seed)
+    lp, info = loop_signal(seg, fs, seconds, basis=basis, f0=f0, hint=hint, use_hint=use_hint,
+                           fit=fit, periods=periods, lock=lock, phase=phase, seed=seed)
     if info['shortened'] and verbose:
         print(f'  [{name}] only {len(seg) / fs:.2f}s of sustain: loop shortened to {info["seconds"]:.3f}s')
     seg_used = seg[info['analysis_offset']:info['analysis_offset'] + info['N']]
@@ -164,7 +165,8 @@ def loop_file(path: str, out_dir: str | None = None, seconds: float = 1.5, *, ba
 
 def summary_line(r: LoopResult) -> str:
     m = r.metrics
-    return (f'  [{os.path.splitext(os.path.basename(r.source))[0]}] {r.basis} f0={r.f0_used:.2f}Hz '
+    pm = r.info.get('pitch', {}).get('method', '?')
+    return (f'  [{os.path.splitext(os.path.basename(r.source))[0]}] {r.basis} f0={r.f0_used:.2f}Hz/{pm} '
             f'(L/R {r.detune_cents:+.1f}c) loop={r.loop_seconds:.3f}s ({r.K} periods, grid {r.grid_cents:+.2f}c) '
             f'seg={r.seg_seconds:.2f}s frames={r.info.get("frames")} '
             f'seam×{m["seam_flux_ratio"]:.2f} mid×{m["mid_flux_ratio"]:.2f} p95×{m["p95_flux_ratio"]:.2f} '

@@ -27,7 +27,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help='dct: real cosines, palindromic loop (default); dft: original phases, no mirror')
     p.add_argument('--phase', choices=['orig', 'random'], default='orig',
                    help='partial phases (dct: signs) from the input, or random')
-    p.add_argument('--f0', type=float, help='fundamental in Hz (default: note in the file name + pYIN, refined)')
+    p.add_argument('--f0', type=float, help='fundamental in Hz (default: the note in the file name, '
+                   'verified against the spectrum, else pYIN)')
+    p.add_argument('--pyin', action='store_true',
+                   help='always run pYIN instead of trusting the note in the file name (~20x slower)')
     p.add_argument('--no-fit', action='store_true', help='do not round the loop to an integer number of periods')
     p.add_argument('--lock', type=float, default=1.5, metavar='BINS',
                    help='harmonic locking half-width in grid bins (default 1.5; 0 disables)')
@@ -67,7 +70,8 @@ def main(argv=None) -> int:
                                   harm_bw_cents=a.harm_bw, f0=a.f0, start=a.start, dur=a.dur, seed=a.seed,
                                   verbose=True, sfizz=not a.no_sfizz)
             else:
-                r = loop_file(path, a.out, a.loop, basis=a.basis, f0=a.f0, fit=not a.no_fit,
+                r = loop_file(path, a.out, a.loop, basis=a.basis, f0=a.f0, use_hint=not a.pyin,
+                              fit=not a.no_fit,
                               periods=a.periods, lock=a.lock, phase=a.phase, start=a.start, dur=a.dur,
                               preview=not a.no_preview, seed=a.seed, verbose=True)
         except Exception as e:  # keep going through a directory

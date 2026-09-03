@@ -219,3 +219,77 @@ def test_loop_signal_end_to_end():
     # too short an input shortens the loop instead of failing
     loop, info = loop_signal(x[:int(0.7 * FS)], FS, 0.5, f0=f0)
     assert info['shortened'] and len(loop) <= int(0.35 * FS)
+
+
+# ---------------------------------------------------------------- pitch from the file name
+
+def _harmonic_tone(f0, secs=3.0, amps=(1.0, .5, .3, .2, .15, .1), fs=FS, noise=0.002, seed=0):
+    rng = np.random.default_rng(seed)
+    n = np.arange(int(secs * fs))
+    y = sum(a * np.cos(2 * np.pi * h * f0 * n / fs + h * 0.7) for h, a in enumerate(amps, 1))
+    return (y + noise * rng.standard_normal(len(n)))[:, None]
+
+
+def test_hint_accepted_when_the_name_is_right():
+    from dctloop import f0_per_channel, hint_is_trustworthy
+    x = _harmonic_tone(466.16 * 1.004)                      # a#4, 7 cents sharp of the name
+    ok, ev = hint_is_trustworthy(x, FS, 466.16)
+    assert ok, ev
+    f, info = f0_per_channel(x, FS, hint=466.16, detail=True)
+    assert info['method'] == 'hint'
+    assert abs(1200 * np.log2(f[0] / (466.16 * 1.004))) < 0.05
+
+
+@pytest.mark.parametrize('semitones', [1, 2, 3, 7, -5])
+def test_hint_rejected_when_the_name_is_the_wrong_note(semitones):
+    from dctloop import hint_is_trustworthy
+    x = _harmonic_tone(440.0)
+    ok, ev = hint_is_trustworthy(x, FS, 440.0 * 2 ** (semitones / 12))
+    assert not ok, (semitones, ev)
+
+
+def test_hint_rejected_on_octave_errors_in_both_directions():
+    """Octave errors are what a harmonic-energy test alone cannot see: the sub-harmonic
+    prominence catches a name an octave too high, the odd/even ratio one an octave too low."""
+    from dctloop import hint_is_trustworthy
+    x = _harmonic_tone(440.0)
+    ok_up, ev_up = hint_is_trustworthy(x, FS, 880.0)        # name an octave above the truth
+    ok_dn, ev_dn = hint_is_trustworthy(x, FS, 220.0)        # name an octave below
+    assert not ok_up and ev_up['sub_prom'] > 30.0, ev_up
+    assert not ok_dn and ev_dn['odd_even'] < 0.02, ev_dn
+
+
+def test_hint_rejected_on_a_weak_fundamental_not_just_a_loud_one():
+    """A trumpet's fundamental is ~16 dB below its second harmonic, so the sub-harmonic test
+    has to measure prominence over the local noise floor, not over the strongest partial."""
+    from dctloop import hint_is_trustworthy
+    x = _harmonic_tone(233.08, amps=(0.03, 1.0, 0.6, 0.4, 0.3, 0.2))
+    ok, ev = hint_is_trustworthy(x, FS, 466.16)             # named an octave up
+    assert not ok, ev
+
+
+def test_hint_rejected_for_unpitched_audio():
+    from dctloop import hint_is_trustworthy
+    rng = np.random.default_rng(4)
+    x = rng.standard_normal((3 * FS, 1))
+    ok, ev = hint_is_trustworthy(x, FS, 440.0)
+    assert not ok, ev
+
+
+def test_rejected_hint_does_not_constrain_the_pyin_fallback():
+    """A name the spectrum contradicts must not narrow pYIN's search range either."""
+    from dctloop import f0_per_channel
+    x = _harmonic_tone(880.0, secs=1.5)
+    f, info = f0_per_channel(x, FS, hint=440.0, detail=True)   # name an octave low
+    assert info['method'] == 'pyin' and info['hint_rejected'] == 440.0
+    assert abs(1200 * np.log2(f[0] / 880.0)) < 5.0, f[0]
+
+
+def test_hint_and_pyin_paths_agree_and_use_hint_can_be_forced_off():
+    from dctloop import loop_signal
+    f0 = 329.63
+    x = _harmonic_tone(f0, secs=2.5)
+    a, ia = loop_signal(x, FS, 0.25, basis='dft', hint=f0 * 1.002)
+    b, ib = loop_signal(x, FS, 0.25, basis='dft', hint=f0 * 1.002, use_hint=False)
+    assert ia['pitch']['method'] == 'hint' and ib['pitch']['method'] == 'pyin'
+    assert ia['L'] == ib['L'] and np.allclose(a, b)

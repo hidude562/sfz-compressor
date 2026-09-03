@@ -18,13 +18,15 @@ from .core import (BASES, analyse_on_grid, fit_loop_length, harmonic_bins, loop_
                    synthesise)
 from .metrics import harmonic_am, measure, seam_metrics, spectrum_match
 from .pipeline import LoopResult, find_body, load_audio, loop_file, make_preview, process, summary_line
-from .pitch import estimate_f0, f0_per_channel, note_from_name, refine_f0
+from .pitch import (estimate_f0, f0_per_channel, harmonic_evidence, hint_is_trustworthy,
+                    note_from_name, refine_f0)
 from .split import fit_short_loop, process_split, split_loop
 
 __all__ = [
     'loop_signal', 'loop_file', 'LoopResult', 'BASES',
     'make_loop', 'fit_loop_length', 'harmonic_bins', 'analyse_on_grid', 'synthesise',
     'note_from_name', 'estimate_f0', 'refine_f0', 'f0_per_channel',
+    'harmonic_evidence', 'hint_is_trustworthy',
     'seam_metrics', 'harmonic_am', 'spectrum_match', 'measure',
     'load_audio', 'find_body', 'make_preview', 'summary_line', 'process',
     'split_loop', 'process_split', 'fit_short_loop',

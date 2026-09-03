@@ -32,6 +32,7 @@ def main(argv=None):
     ap.add_argument('--loop', type=float, default=1.5)
     ap.add_argument('--basis', default='dct,dft', help='comma-separated: dct, dft')
     ap.add_argument('--lock', type=float, default=1.5)
+    ap.add_argument('--pyin', action='store_true', help='force pYIN instead of the file-name pitch')
     ap.add_argument('--play', action='store_true')
     ap.add_argument('--files', nargs='*', help='override the test set (paths relative to Samples/)')
     ap.add_argument('--split', action='store_true', help='harmonic + residual split instead of single loops')
@@ -49,7 +50,8 @@ def main(argv=None):
     for rel in (a.files or TEST_SET):
         path = os.path.join(SSO, rel)
         for basis in a.basis.split(','):
-            r = loop_file(path, os.path.join(a.out, basis), a.loop, basis=basis, lock=a.lock)
+            r = loop_file(path, os.path.join(a.out, basis), a.loop, basis=basis, lock=a.lock,
+                          use_hint=not a.pyin)
             rows.append(r)
             print(summary_line(r))
             if a.play and 'preview' in r.outputs:

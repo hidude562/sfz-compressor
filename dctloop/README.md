@@ -43,7 +43,8 @@ Per input, `loop_file` writes `<name>_loop.wav` (the bare loop), `<name>_preview
 | `seconds` / `--loop` | 1.5 | target loop length; rounded to an integer number of periods, shortened if the sustain is shorter than two loops |
 | `periods` / `--periods` | – | instead of `seconds`: exactly this many fundamental periods |
 | `basis` / `--basis` | `dct` | `dct`: real cosines, palindromic loop. `dft`: the input's phases, no mirror |
-| `f0` / `--f0` | auto | fundamental in Hz; auto = note name in the file name as a hint, pYIN, then spectral refinement to ~0.01 cent |
+| `f0` / `--f0` | auto | fundamental in Hz; auto = the note in the file name, verified against the spectrum, else pYIN (see below) |
+| `use_hint` / `--pyin` | on | `--pyin` forces pYIN instead of trusting the file name |
 | `lock` / `--lock` | 1.5 | harmonic-lock half-width in grid bins (0 disables) |
 | `phase` / `--phase` | `orig` | partial phases (dct: signs) from the input, or `random` |
 | `fit` / `--no-fit` | on | round the loop to whole periods |
@@ -58,10 +59,14 @@ Anything in between trades one for the other.
 
 1. **Sustain** (`find_body`): the longest stretch where the smoothed RMS envelope stays
    within 12 dB of its peak, trimmed 150 ms at each end.
-2. **Pitch** (`pitch.py`): pYIN per channel (SSO files are stereo and some sections carry
-   different detunings left and right), then refined by parabolic interpolation of the
-   first six harmonic peaks. pYIN alone is quantised to 10 cents; the loop fit needs
-   ~0.01 cent.
+2. **Pitch** (`pitch.py`): the fundamental is refined per channel by parabolic interpolation
+   of the first six harmonic peaks in one long spectrum, good to ~0.01 cent. pYIN alone is
+   quantised to 10 cents, far too coarse for the loop fit. The refinement needs a starting
+   point within about half a semitone, and converges to the same value from any of them, so
+   the note in the file name is used directly when the spectrum bears it out, and pYIN runs
+   only when it does not. That is a 5 to 20 times speedup on a whole library (see *Speed*).
+   Per channel, because SSO files are stereo and some sections carry different detunings
+   left and right.
 3. **Loop length** (`fit_loop_length`): an even number of samples `L` near the target that
    holds an integer number `K` of fundamental periods as exactly as possible. Harmonic *h*
    then sits on grid bin `h·K`. The grid spacing is `fs/L` Hz (0.67 Hz at 1.5 s, 4 Hz at
@@ -98,6 +103,28 @@ Anything in between trades one for the other.
    Finally the loop is scaled to the RMS of the analysed segment; the reported `gain` is
    ≈1 when the calibration holds.
 
+### Trusting the file name
+
+`hint_is_trustworthy` accepts a pitch taken from a file name only if three cheap spectral
+tests agree, all measured on one Hann-windowed spectrum of the sustain:
+
+| test | rejects | correctly-named SSO notes | a wrong name |
+|---|---|---|---|
+| `frac`, energy fraction on the harmonic series | the wrong note, unpitched audio | 0.89 to 1.00 | ≤ 0.36 |
+| `sub_prom`, prominence of the lines at f0/2 and f0/3 over the local noise floor | a name an **octave too high** | 0.9 to 7.5 | 10⁴ to 10⁶ |
+| `odd_even`, median prominence of odd harmonics over even ones | a name an **octave too low** | 0.17 to 1.48 | ≤ 0.0005 |
+
+Thresholds are 0.40, 30 and 0.02, each with more than an order of magnitude of margin.
+The sub-harmonic test measures prominence over the *local noise floor* rather than over the
+strongest partial, because a trumpet's fundamental is about 16 dB below its second harmonic
+and would otherwise look absent. Octave errors are the case a harmonic-energy test cannot
+see on its own: every harmonic of a candidate an octave up is a real harmonic of the note.
+
+If the name is rejected the code falls back to pYIN, searching the **full** range rather than
+around the discredited hint. This is not hypothetical: SSO's `flute-a4.wav` is really 884 Hz,
+an octave above its name. The guard catches it (`odd_even` = 0.002) and the fallback resolves
+it to 886.4 Hz, which unhinted pYIN confirms.
+
 ### Why harmonic locking
 
 Any energy on the grid bins next to a harmonic (bin `h·K ± 1`) beats with that harmonic at
@@ -126,6 +153,25 @@ between them keeps its `L`-periodic texture. At long loops the lock window is na
 Typical values on the SSO test set (0.25 s loops, either basis): seam× 1.0–2.0 against
 p95× 1.4–2.1, spectrum error 0.1–0.5 dB mean, wah 0.0 dB.
 
+## Speed
+
+Measured on a Ryzen 7 8845HS, single-threaded, per 5 s stereo note:
+
+| stage | time |
+|---|---|
+| load, sustain detection | 6 ms |
+| pitch from the file name (refinement + the three guard tests) | 10 ms |
+| pitch from pYIN, when the name is missing or rejected | 700 to 1900 ms |
+| analysis + synthesis | 28 to 70 ms |
+| all metrics | 20 to 62 ms |
+| write loop, preview and JSON | 20 ms |
+| **total, name trusted** | **50 to 175 ms** |
+| **total, pYIN** | **0.8 to 2.0 s** |
+
+Cost scales with the length of audio analysed, not with the loop length: about 7 ms per
+second of input at any loop length, since the analysis is a fixed number of overlapping
+frames per second. With the pitch known this runs 30 to 80 times faster than real time.
+
 ## Limits, by design
 
 * The loop can only contain frequencies `m·fs/L`. Anything else is moved to the nearest
@@ -141,7 +187,7 @@ p95× 1.4–2.1, spectrum error 0.1–0.5 dB mean, wah 0.0 dB.
 | file | content |
 |---|---|
 | `core.py` | `loop_signal`, `make_loop`, `analyse_on_grid`, `synthesise`, `fit_loop_length` — the method |
-| `pitch.py` | note names, pYIN, spectral refinement |
+| `pitch.py` | note names, spectral refinement, the file-name guard, pYIN fallback |
 | `metrics.py` | seam, wah and spectrum measurements |
 | `pipeline.py` | `loop_file`, sustain detection, preview and file output, `LoopResult` |
 | `cli.py` | `python3 -m dctloop` |
