@@ -1,0 +1,151 @@
+"""Synthetic checks for dctloop (run: python3 -m pytest dctloop/tests -q)."""
+import math
+
+import numpy as np
+import pytest
+
+from dctloop.core import fit_loop_length, make_loop, note_from_name, refine_f0, seam_metrics
+
+
+FS = 44100
+
+
+def tone(f0, secs, phases=None, amps=(1.0, 0.5, 0.25, 0.125), fs=FS, noise=0.0, seed=0):
+    rng = np.random.default_rng(seed)
+    n = np.arange(int(secs * fs))
+    y = np.zeros(len(n))
+    for h, a in enumerate(amps, 1):
+        ph = phases[h - 1] if phases is not None else 0.0
+        y += a * np.cos(2 * np.pi * h * f0 * n / fs + ph)
+    return y + noise * rng.standard_normal(len(n))
+
+
+def test_note_parsing():
+    assert abs(note_from_name('trumpet-a#4') - 466.1637) < 1e-3
+    assert abs(note_from_name('1st-violins-sus-a4.wav') - 440.0) < 1e-9
+    assert abs(note_from_name('cello-c3') - 130.8128) < 1e-3
+    assert note_from_name('2nd-violins-piz-rr2-e4') == pytest.approx(329.6276, abs=1e-3)
+    assert note_from_name('snare-hit') is None
+
+
+def test_fit_loop_length_exact_periods():
+    L, K, cents = fit_loop_length(1.5, FS, 440.0)
+    assert L % 2 == 0 and abs(K * FS / L - 440.0) / 440.0 < 1e-4
+    assert abs(cents) < 0.2
+    # 22 periods of 440 Hz at 44.1 kHz are exactly 2205 samples -> even rounding is 2204/2206
+    L, K, _ = fit_loop_length(0.05, FS, 440.0)
+    assert abs(L - K * FS / 440.0) <= 1.0
+
+
+@pytest.mark.parametrize('basis', ['dct', 'dft'])
+@pytest.mark.parametrize('mode', ['snap', 'comb'])
+def test_loop_is_exactly_periodic_and_sounds_like_the_input(basis, mode):
+    f0 = 220.0
+    rng = np.random.default_rng(1)
+    phases = rng.uniform(-np.pi, np.pi, 4)
+    x = tone(f0, 4.0, phases)[:, None]
+    L, K, _ = fit_loop_length(1.0, FS, f0)
+    loop, info = make_loop(x, FS, L, mode=mode, basis=basis)
+    assert len(loop) == L and info['q'] == 4
+    # exact periodicity: the seam is no bigger than any other step in the signal
+    step = np.abs(np.diff(np.concatenate([loop, loop[:1]]), axis=0))
+    assert step[-1, 0] <= np.percentile(step[:, 0], 99.5)
+    # harmonic amplitudes are recovered (spectrum on the loop grid)
+    Y = np.abs(np.fft.rfft(loop[:, 0])) * 2 / L
+    amps = [Y[h * K] for h in range(1, 5)]
+    assert np.allclose(amps, [1, .5, .25, .125], rtol=0.15, atol=0.02), amps
+    # nothing between the harmonics
+    off = np.delete(Y, [h * K for h in range(1, 5)])
+    assert off.max() < 0.03
+
+
+def test_dct_loop_is_a_palindrome():
+    x = tone(330.0, 3.0, noise=0.05)[:, None]
+    L, _, _ = fit_loop_length(0.5, FS, 330.0)
+    loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    assert np.allclose(loop, loop[::-1])
+    loop2, _ = make_loop(x, FS, L, mode='snap', basis='dft')
+    assert not np.allclose(loop2, loop2[::-1])
+
+
+def test_snap_amplitude_is_phase_independent():
+    """The DCT sees cos(phi) in one bin and sin(phi) in the neighbours: band energy must not
+    depend on the phase of the partial."""
+    f0 = 500.0
+    L, K, _ = fit_loop_length(0.4, FS, f0)
+    got = []
+    for ph in np.linspace(0, np.pi, 9):
+        x = tone(f0, 2.0, [ph, ph, ph, ph], amps=(1.0,))[:, None]
+        loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+        got.append(np.abs(np.fft.rfft(loop[:, 0]))[K] * 2 / L)
+    got = np.array(got)
+    assert got.max() / got.min() < 1.05, got
+
+
+def test_comb_attenuates_noise_snap_keeps_it():
+    rng = np.random.default_rng(3)
+    x = rng.standard_normal(int(4.0 * FS))[:, None]
+    L = 22050
+    y_comb, _ = make_loop(x, FS, L, mode='comb', basis='dct')
+    y_snap, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    # both are RMS-normalised, so compare the un-normalised fold: recompute via the gain
+    # (gain > 1 means energy was lost before normalisation)
+    _, info_c = make_loop(x, FS, L, mode='comb', basis='dct')
+    _, info_s = make_loop(x, FS, L, mode='snap', basis='dct')
+    assert info_c['gain'] > 1.4 * info_s['gain']
+    assert abs(info_s['gain'] - 1.0) < 0.35
+
+
+def test_seam_metric_flags_a_bad_join():
+    f0 = 261.6
+    x = tone(f0, 4.0, [0.3, 1.1, 2.0, -1.0])[:, None]
+    L, K, _ = fit_loop_length(1.0, FS, f0)
+    loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    good = seam_metrics(loop, FS)
+    bad = seam_metrics(x[:L + 37], FS)  # a raw cut, not a whole number of periods
+    assert good['seam_flux_ratio'] < 2.0
+    assert bad['seam_flux_ratio'] > 2 * good['seam_flux_ratio']
+
+
+def test_needs_two_loop_lengths():
+    x = tone(440.0, 0.5)[:, None]
+    with pytest.raises(ValueError):
+        make_loop(x, FS, 2 * (int(0.4 * FS) // 2))
+
+
+def test_off_grid_partial_is_moved_not_split():
+    """A partial exactly between two grid bins must become ONE component (moved by half a bin),
+    not two equal ones beating at 1/L Hz."""
+    L = 22050
+    f = (300 + 0.5) * FS / L                      # half-way between grid bins 300 and 301
+    n = np.arange(4 * FS)
+    x = np.cos(2 * np.pi * f * n / FS + 0.4)[:, None]
+    for basis in ('dct', 'dft'):
+        loop, _ = make_loop(x, FS, L, mode='snap', basis=basis)
+        Y = np.abs(np.fft.rfft(loop[:, 0])) * 2 / L
+        big, small = max(Y[300], Y[301]), min(Y[300], Y[301])
+        assert big > 0.9 and small < 0.1, (basis, Y[299:303])
+
+
+def test_refine_f0_is_precise():
+    f_true = 441.73
+    n = np.arange(3 * FS)
+    x = (np.cos(2 * np.pi * f_true * n / FS) + 0.3 * np.cos(2 * np.pi * 2 * f_true * n / FS + 1))[:, None]
+    f = refine_f0(x, FS, 440.0)                    # pyin-style coarse start, 7 cents off
+    assert abs(f[0] - f_true) < 0.02
+
+
+def test_stereo_signs_keep_the_image():
+    """DCT signs are chosen relative to channel 0 so a coherent stereo pair stays coherent."""
+    rng = np.random.default_rng(5)
+    f0 = 233.1
+    L, K, _ = fit_loop_length(1.0, FS, f0)
+    n = np.arange(4 * FS)
+    left = sum(a * np.cos(2 * np.pi * h * f0 * n / FS + p) for h, (a, p) in enumerate(zip([1, .6, .3, .2], rng.uniform(-3, 3, 4)), 1))
+    delay = 13                                                 # right = left delayed 0.3 ms + own noise
+    right = np.concatenate([np.zeros(delay), left[:-delay]])
+    x = np.stack([left + 0.05 * rng.standard_normal(len(n)), right + 0.05 * rng.standard_normal(len(n))], 1)
+    loop, _ = make_loop(x, FS, L, mode='snap', basis='dct')
+    c_orig = np.corrcoef(x[:, 0], x[:, 1])[0, 1]
+    c_loop = np.corrcoef(loop[:, 0], loop[:, 1])[0, 1]
+    assert c_loop > 0.5 and abs(c_loop - c_orig) < 0.3, (c_orig, c_loop)
