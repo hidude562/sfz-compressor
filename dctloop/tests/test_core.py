@@ -149,3 +149,33 @@ def test_stereo_signs_keep_the_image():
     c_orig = np.corrcoef(x[:, 0], x[:, 1])[0, 1]
     c_loop = np.corrcoef(loop[:, 0], loop[:, 1])[0, 1]
     assert c_loop > 0.5 and abs(c_loop - c_orig) < 0.3, (c_orig, c_loop)
+
+
+def test_split_separates_harmonics_from_noise():
+    from dctloop.split import fit_short_loop, split_loop
+    rng = np.random.default_rng(7)
+    f0 = 311.13
+    n = np.arange(int(3.5 * FS))
+    amps = [1.0, 0.5, 0.25, 0.125]
+    phases = rng.uniform(-np.pi, np.pi, 4)
+    tone_part = sum(a * np.cos(2 * np.pi * h * f0 * n / FS + p) for h, (a, p) in enumerate(zip(amps, phases), 1))
+    noise = 0.1 * rng.standard_normal(len(n))
+    x = (tone_part + noise)[:, None]
+    harm, resid, info = split_loop(x, FS, f0, resid_seconds=2.0)
+    # harmonic loop: exact periods, right amplitudes, essentially no noise
+    L, K = info['L_harm'], info['K_harm']
+    assert abs(info['harm_cents']) <= 0.5 and len(harm) == L
+    Y = np.abs(np.fft.rfft(harm[:, 0])) * 2 / L
+    assert np.allclose([Y[h * K] for h in range(1, 5)], amps, rtol=0.1, atol=0.02)
+    assert np.sqrt(np.mean(harm ** 2)) == pytest.approx(np.sqrt(np.mean(tone_part ** 2)), rel=0.1)
+    # residual: the noise level, and nothing left at the harmonics
+    assert np.sqrt(np.mean(resid ** 2)) == pytest.approx(0.1, rel=0.2)
+    R = np.abs(np.fft.rfft(resid[:, 0])) * 2 / len(resid)
+    Lr = len(resid)
+    for h in range(1, 5):
+        b = int(round(h * f0 * Lr / FS))
+        assert R[b - 1:b + 2].max() < 0.03
+    assert len(resid) == int(2.0 * FS)
+    # short-loop fit
+    L2, K2, c2 = fit_short_loop(FS, 440.0)
+    assert abs(c2) <= 0.5 and L2 == int(round(K2 * FS / 440.0))

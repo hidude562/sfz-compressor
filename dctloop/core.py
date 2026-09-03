@@ -374,7 +374,8 @@ def seam_metrics(loop: np.ndarray, fs: int) -> dict:
                 seam_step=float(np.max(np.abs(loop[0] - loop[-1])) / (np.max(np.abs(loop)) + 1e-12)))
 
 
-def spectrum_match(seg: np.ndarray, fs: int, loop: np.ndarray, lo: float = 60.0) -> dict:
+def spectrum_match(seg: np.ndarray, fs: int, loop: np.ndarray, lo: float = 60.0,
+                   floor_db: float = 60.0) -> dict:
     """Third-octave long-term spectrum of the loop vs the analysed segment, per channel (dB),
     plus the level of the mono sum (which is sensitive to how inter-channel phases were frozen)."""
     y = np.tile(loop, (int(math.ceil(len(seg) / len(loop))), 1))[:len(seg)]
@@ -385,13 +386,19 @@ def spectrum_match(seg: np.ndarray, fs: int, loop: np.ndarray, lo: float = 60.0)
     for c in range(seg.shape[1]):
         f, P1 = welch(seg[:, c], fs, nperseg=nper)
         _, P2 = welch(y[:, c], fs, nperseg=nper)
-        d = []
+        e1, e2 = [], []
         for a, b in zip(edges[:-1], edges[1:]):
             sel = (f >= a) & (f < b)
             if sel.sum() < 2:
                 continue
-            d.append(10 * np.log10((P2[sel].sum() + 1e-20) / (P1[sel].sum() + 1e-20)))
-        per_chan.append(np.array(d))
+            e1.append(P1[sel].sum() + 1e-20)
+            e2.append(P2[sel].sum() + 1e-20)
+        e1, e2 = np.array(e1), np.array(e2)
+        d = 10 * np.log10(e2 / e1)
+        # bands more than `floor_db` below the loudest band of the reference are inaudible
+        # detail (noise floors, dither) and would swamp the average
+        d[e1 < e1.max() * 10 ** (-floor_db / 10)] = 0.0
+        per_chan.append(d)
     d = np.mean(np.abs(np.array(per_chan)), axis=0)
     mono_db = 10 * np.log10(np.mean(y.mean(axis=1) ** 2) / (np.mean(seg.mean(axis=1) ** 2) + 1e-20) + 1e-20)
     return dict(ltas_mean_abs_db=float(np.mean(d)), ltas_max_abs_db=float(np.max(d)), mono_db=float(mono_db),

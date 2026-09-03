@@ -9,6 +9,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dctloop.core import process  # noqa: E402
+from dctloop.split import process_split  # noqa: E402
 
 SSO = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'Samples')
 TEST_SET = [
@@ -29,8 +30,18 @@ def main(argv=None):
     ap.add_argument('--configs', default='dct-snap,dct-comb,dft-snap,dft-comb')
     ap.add_argument('--play', action='store_true')
     ap.add_argument('--files', nargs='*', help='override the test set (paths relative to Samples/)')
+    ap.add_argument('--split', action='store_true', help='harmonic + residual split instead of single loops')
+    ap.add_argument('--resid-loop', type=float, default=3.0)
+    ap.add_argument('--harm-bw', type=float)
     a = ap.parse_args(argv)
     rows = []
+    if a.split:
+        out = os.path.join(a.out, 'split')
+        for rel in (a.files or TEST_SET):
+            r = process_split(os.path.join(SSO, rel), out, resid_seconds=a.resid_loop, harm_bw_cents=a.harm_bw, verbose=True)
+            if a.play:
+                subprocess.run(['paplay', r.outputs['preview']])
+        return
     for rel in (a.files or TEST_SET):
         path = os.path.join(SSO, rel)
         for cfg in a.configs.split(','):
