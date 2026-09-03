@@ -230,10 +230,16 @@ def segment_note(x: np.ndarray, sr: int, f0_hint: float | None = None, min_perio
     body_dur = (release_onset - attack_end) / sr
     min_body = max(0.3, min_periods / f0_hint) if f0_hint else 0.3
     attack_time = (t[peak_i] - onset) / sr
-    total_drop = float(e_s[min(ae, len(e_s) - 1)] - e_s[min(ro, len(e_s) - 1)])
+    # how far the note falls within the first two seconds after the attack (a decaying note keeps
+    # falling; a sustained one with a diminuendo falls slowly). Short notes: up to the release onset.
+    ae_c = min(ae, len(e_s) - 1)
+    two_s = int(round(2.0 / hop_s))
+    win_end = ae_c + two_s if (t[last] - t[ae_c]) / sr > 2.5 else max(ae_c + 1, min(ro, len(e_s) - 1) + 1)
+    win_end = max(ae_c + 1, min(win_end, len(e_s)))
+    total_drop = float(e_s[ae_c] - e_s[ae_c: win_end].min())
     if body_dur < min_body and not force_loop:
         klass = "oneshot"
-    elif (attack_time < 0.06 and slope < -2.0 and total_drop >= 10.0) or (slope < -12.0 and total_drop >= 15.0):
+    elif (attack_time < 0.12 and slope < -2.0 and total_drop >= 6.0) or (slope < -12.0 and total_drop >= 15.0):
         klass = "decay"  # excited once, then rings down (piano, harp, mallets, plucked strings)
     else:
         klass = "sustain"

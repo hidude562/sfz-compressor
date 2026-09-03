@@ -50,7 +50,7 @@ def _weighted_ls(basis: np.ndarray, y: np.ndarray, w: np.ndarray, nonneg: bool) 
 
 def fit_envelope_components(amp: np.ndarray, t: np.ndarray, klass: str, n_stages: int,
                             weights: np.ndarray | None = None,
-                            sustain_floor: float = 0.4) -> tuple[list[EnvComponent], float, float]:
+                            sustain_floor: float = 0.4, nonneg: bool | None = None) -> tuple[list[EnvComponent], float, float]:
     """Factorise amp[c, k, i] ~ sum_j coef_j[c, k] * e_j(t_i).
 
     Returns (components, fit_error_db, baseline_error_db).  For the 'decay' class the
@@ -75,7 +75,7 @@ def fit_envelope_components(amp: np.ndarray, t: np.ndarray, klass: str, n_stages
     Wf = np.tile(wkt + 1e-6, (C, 1))                # (P, F) fit weights
     Werr = np.tile(wkt, (C, 1))
     valid = Y.max(axis=1) > 0
-    nonneg = klass == "decay"
+    nonneg = (klass == "decay") if nonneg is None else bool(nonneg)
 
     def fit_with(basis_fns):
         """Batched weighted least squares over all partials (non-negative by active-set enumeration)."""

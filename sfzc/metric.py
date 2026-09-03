@@ -233,10 +233,27 @@ def seam_distance(o: np.ndarray, r: np.ndarray, sr: int, held: tuple[float, floa
                 seam_db = float(best - 6.0) if np.isfinite(best) else 0.0  # max-over-phases bias
     # seam prominence (dB above the loop's typical transient level) is the primary cue
     seam_db = max(seam_db, -20.0)
-    D = min(1.5, 0.1 * excess_ac + 0.5 * excess_mod + max(0.0, seam_db - 3.0) / 10.0)
+    # the one-time junction where the recorded attack hands over to the loop: spectral step across
+    # loop_start (mean |dB| log-mel difference, 40 ms before vs 40 ms after), in excess of the
+    # original's own step at the same instant. An absolute measure, so steady notes are not
+    # penalised for tiny steps relative to a near-zero transient floor.
+    junction_db = 0.0
+    if loop_start_s is not None:
+        j0 = int(loop_start_s * sr)
+        n40 = int(0.04 * sr)
+        if j0 - n40 >= 0 and j0 + n40 <= min(len(o), len(r)):
+            def _step(sig):
+                m = dsp.to_mono(sig)
+                A = _logmel(m[j0 - n40: j0], sr, 1024, 256, n_mels=48).mean(axis=1)
+                B = _logmel(m[j0: j0 + n40], sr, 1024, 256, n_mels=48).mean(axis=1)
+                lo = max(A.max(), B.max()) - 50.0
+                return float(np.mean(np.abs(np.maximum(A, lo) - np.maximum(B, lo))))
+            junction_db = float(np.clip(_step(r) - _step(o), -20.0, 40.0))
+    D = min(1.5, 0.1 * excess_ac + 0.5 * excess_mod + max(0.0, seam_db - 3.0) / 10.0 + max(0.0, junction_db - 1.5) / 6.0)
     return dict(D_seam=float(D), periodicity_orig=float(po), periodicity_rend=float(pr),
                 periodicity_rend_at_loop=float(prt), env_mod_peak_orig_db=float(mo), env_mod_peak_rend_db=float(mr),
-                pumping_orig_db=float(pump_o), pumping_rend_db=float(pump_r), seam_prominence_db=float(seam_db))
+                pumping_orig_db=float(pump_o), pumping_rend_db=float(pump_r), seam_prominence_db=float(seam_db),
+                junction_db=float(junction_db))
 
 
 def variation_distance(o: np.ndarray, r: np.ndarray, sr: int, held: tuple[float, float] | None) -> dict:

@@ -77,7 +77,9 @@ def main() -> int:
     ap.add_argument("--only", default=None, help="comma separated substrings to select demo entries")
     ap.add_argument("--candidates", type=int, default=4)
     ap.add_argument("--max-duration", type=float, default=None, help="hard budget in seconds of audio per sample")
-    ap.add_argument("--method", default="auto", choices=["auto", "hybrid", "laroche"])
+    ap.add_argument("--method", default="dctloop", choices=["dctloop", "auto", "hybrid", "laroche"])
+    ap.add_argument("--loop-seconds", type=float, default=None, help="dctloop: target loop length in seconds")
+    ap.add_argument("--basis", default="dft", choices=["auto", "dct", "dft"], help="dctloop synthesis basis (dft keeps the original phases at the join)")
     ap.add_argument("--refine", action="store_true")
     ap.add_argument("--lfo", action="store_true")
     ap.add_argument("--loop-crossfade", type=float, default=0.0)
@@ -116,13 +118,19 @@ def main() -> int:
         fmt = "flac" if path.lower().endswith(".flac") else "wav"
         cfg = LoopConfig(q=args.q, n_candidates=args.candidates, baseline=True, out_format=fmt,
                          max_total_s=args.max_duration, method=args.method, refine=args.refine, lfo=args.lfo,
-                         loop_crossfade_s=args.loop_crossfade)
+                         loop_crossfade_s=args.loop_crossfade, loop_seconds=args.loop_seconds, dct_basis=args.basis)
         from sfzc.looper import process_sample
 
         lp = SampleLooper(path, cfg)  # for name / render protocol only
         outdir = os.path.join(args.out, lp.name)
         r = process_sample(path, outdir, cfg)
-        lp.analyse()
+        if cfg.method == "dctloop":
+            from sfzc.dctloop_backend import DctLoopLooper
+
+            lp = DctLoopLooper(path, cfg)
+            lp.analyse_light()
+        else:
+            lp.analyse()
         note_on, render_s, orig, held = lp.render_protocol()
         orig_p = os.path.join(outdir, "A_original.wav")
         rec_p = os.path.join(outdir, "B_recreation.wav")

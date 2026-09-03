@@ -44,8 +44,14 @@ class LoopConfig:
     delay_offset_samples: int = 2     # sfizz starts a `delay`ed voice this many samples late (measured)
     stage_files: str = "delay"        # 'delay': extra stage/noise files hold only the loop and start via the
                                       # delay opcode; 'padded': zero-filled attack (player agnostic, bigger)
-    method: str = "hybrid"            # 'hybrid': tracked partials / hybrid loops (default path)
+    method: str = "dctloop"           # 'dctloop': loop-periodic-grid reconstruction (dctloop package, default)
+                                      # 'hybrid': tracked partials / hybrid loops
                                       # 'laroche': frozen loop-locked oscillator bank + separate noise loop (sfzc.laroche)
+                                      # 'auto': hybrid vs laroche by Metric B
+    loop_seconds: float | None = None  # dctloop: target loop length (default 0.25 + 1.25 q, capped by the budget)
+    dct_basis: str = "dft"            # dctloop: 'dft' keeps the original's phases so the loop lines up with the
+                                      # recorded attack at the join; 'dct' (palindrome) or 'auto' (both, by Metric B)
+    dct_lock: float = 1.5             # dctloop: harmonic-lock half-width in grid bins (0 disables)
     frozen: str = "auto"              # laroche: 'auto' (frozen unless vibrato/tremolo), 'on', 'off'
     target_periods: float = 166.0     # laroche: preferred loop length in fundamental periods (Laroche's 0.5/0.003)
     refine: bool = False              # laroche: Stage-3 MR-STFT refinement of partial / noise-band gains (PyTorch)
@@ -732,7 +738,8 @@ class SampleLooper:
         i_r = model.frame_at(seg.release_onset)
         body = slice(i0, max(i0 + 2, i_r + 1))
         t_body = (model.centers[body] - n0) / sr
-        comps, fit_err, base_err = fit_envelope_components(lvl[body][None, None, :], t_body, "sustain", stages)
+        comps, fit_err, base_err = fit_envelope_components(lvl[body][None, None, :], t_body, "sustain", stages,
+                                                           nonneg=True)
         tot = sum(float(c.coef[0, 0]) for c in comps)
         peak = float(np.max(np.abs(out))) if out.size else 0.0
         gdb = 0.0
@@ -914,6 +921,10 @@ class SampleLooper:
 
 def process_sample(path: str, out_dir: str, cfg: LoopConfig | None = None) -> LoopResult:
     cfg = cfg or LoopConfig()
+    if cfg.method == "dctloop":
+        from .dctloop_backend import DctLoopLooper
+
+        return DctLoopLooper(path, cfg).run(out_dir)
     if cfg.method == "laroche":
         from .laroche import LarocheLooper
 

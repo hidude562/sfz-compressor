@@ -153,6 +153,8 @@ def write_report(rows: list[dict], path: str, q: float, sfz_texts: dict[str, str
         f"Sonatina {budget:g}-Second Bench" if budget is not None else "Sonatina Loop Bench")
     if method == "laroche":
         title = "Sonatina Loop-Locked Bench" if budget is None else f"Loop-Locked {title.replace('Sonatina ', '')}"
+    if method == "dctloop":
+        title = "Sonatina dctloop Bench" if budget is None else f"dctloop {title.replace('Sonatina ', '')}"
     budget_line = (f" · hard budget <b>{budget:g} s</b> of audio per sample (all files together)" if budget is not None else "")
     page = f'''<title>{title}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -213,9 +215,7 @@ pre.log{{color:var(--muted)}}
 <header>
   <span class="eyebrow">Sonatina Symphonic Orchestra · q = {q}{" · budget " + format(budget, "g") + " s" if budget is not None else ""} · method {method}</span>
   <h1>{title}</h1>
-  <p class="lede">Each sample was analysed into per-channel partial tracks plus a noise residual, turned into an
-  exactly repeating loop with SFZ envelopes, rendered back with sfizz for the length of the original note, and scored
-  against the original. Listen to the pairs; the crossfade loop is the conventional method on the same region.</p>
+  <p class="lede">{("Each sample's sustain was rebuilt by <b>dctloop</b> on a loop-periodic grid (cosines whose wavelengths divide the loop, with harmonic locking), joined to the recorded attack, given SFZ envelopes, rendered back with sfizz for the length of the original note, and scored against the original." if method == "dctloop" else "Each sample was analysed into per-channel partial tracks plus a noise residual, turned into an exactly repeating loop with SFZ envelopes, rendered back with sfizz for the length of the original note, and scored against the original.")} Listen to the pairs; the crossfade loop is the conventional method on the same region.</p>
   <div class="kpis"><span><b>{n}</b> samples</span>{("<span>every sample within <b>" + format(budget, "g") + " s</b> of audio</span>") if budget is not None else ""}<span><b>{n_loop}</b> looped, {n - n_loop} kept as one-shots</span>
   <span>recreation ≥ crossfade in <b>{wins}</b> of {n_loop}</span><span>total size <b>{tot_ours/1024:.1f} MB</b> vs {tot_orig/1024:.1f} MB original</span></div>
 </header>

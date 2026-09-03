@@ -23,6 +23,32 @@ note that accompanies this directory:
 Everything is plain Python/NumPy/SciPy + librosa (pYIN); verification renders
 use the real sfizz engine through the `pysfizz` binding.
 
+## Backends
+
+`--method` selects how the loop itself is built; everything around it (segmentation,
+attack handling, envelopes, release, crossfade baseline, sfizz render, Metric B,
+demo and report) is shared.
+
+* **`dctloop` (default)** — the `dctloop` package in this directory: the sustain is
+  rebuilt on a loop-periodic grid (cosines whose wavelengths divide the loop) with
+  harmonic locking, so the loop is periodic by construction. `sfzc/dctloop_backend.py`
+  runs `dctloop.loop_signal` on the note's body with the `dft` basis by default
+  (`--basis dct|auto`), lines the loop up with the original at the join - either by giving
+  the loop the original's phase at every grid bin measured at the join (so inharmonic
+  partials are coherent too) or by rotating it, whichever gives the smaller cancellation
+  dip in the cross-fade and the smaller transient at the join - level-matches it there (per-channel RMS over a 20–50 ms window at the join, so a decaying note does not step down when the loop takes over), and writes one file: recorded attack → 10 ms cross-fade → loop. Envelopes are non-negative constant/exponential regions of that file (up to three exponentials for decaying notes, so both the fast initial decay and the long tail are followed; a swell after the join is not reproduced, the loop holds the join level).
+  Decaying notes are handled specially: dctloop analyses only 2–3 loop lengths right after
+  the join, level-detrended, so the loop carries the join's timbre rather than the average
+  of the whole decay; a `fileg` low-pass envelope is fitted when the original darkens
+  beyond that; the cross-fade is 30 ms; and under a budget several join points (attack
+  end, 25 % and 40 % of the budget) are built for every class and Metric B picks one, which
+  usually spends more of the budget on the recorded early decay and less on the loop. `--loop-seconds` sets the target loop length (default `0.25 + 1.25 q`,
+  capped by `--max-duration`); `--lock` is dctloop's harmonic-lock width. See
+  `dctloop/README.md` for the method.
+* `hybrid` — the tracked-partials / original-audio hybrid path described below.
+* `laroche` — the frozen loop-locked oscillator bank (`sfzc/laroche.py`).
+* `auto` — hybrid vs laroche, keeping the better by Metric B.
+
 ## Usage
 
 ```bash
@@ -51,8 +77,7 @@ candidates are deleted; `_xfade.*` is the baseline when `--baseline` is given.
 1. **Segmentation** (`dsp.segment_note`): onset, end of the onset transient
    (level within 15 dB of peak and |slope| < 60 dB/s, so swelling notes work),
    release onset (or, for decaying notes, the point 50 dB below peak), and a
-   class: `decay` (percussive attack < 60 ms with a monotone fall ≥ 10 dB, or
-   any note falling faster than 12 dB/s), `oneshot` (body shorter than
+   class: `decay` (attack < 120 ms and a fall of ≥ 6 dB within the two seconds after it, or any note falling faster than 12 dB/s by ≥ 15 dB), `oneshot` (body shorter than
    0.3 s / 16 periods, or a decaying hit shorter than 1 s or faster than
    −20 dB/s, or unpitched → written with `loop_mode=one_shot`/`no_loop`),
    else `sustain`.
@@ -219,7 +244,9 @@ than ~1 s the grid cannot keep both channels' fundamentals on it.
   global level matching, plus 0.25·|gain offset|.
 * `D_seam` — (a) novelty (half-wave rectified log-mel flux, high-passed at
   ~20 Hz so only transients count) at the known seam phase relative to the
-  90th percentile of all loop phases, in dB; (b) periodic level *pumping*:
+  90th percentile of all loop phases, in dB, plus the one-time spectral step at the
+  attack→loop junction (`junction_db`: mean |dB| log-mel difference between the 40 ms
+  before and after the join, in excess of the original's own step there); (b) periodic level *pumping*:
   std of the loop-cycle-folded log envelope minus the same for the original;
   (c) a small weight on the excess autocorrelation of the transient novelty
   at the loop lag.

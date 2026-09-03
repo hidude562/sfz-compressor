@@ -39,7 +39,8 @@ def cmd_loop(args: argparse.Namespace) -> int:
                      hybrid=args.hybrid, f0_method=args.f0_method, max_total_s=args.max_duration,
                      stage_files=args.stage_files, method=args.method, frozen=args.frozen,
                      target_periods=args.target_periods, refine=args.refine, lfo=args.lfo,
-                     loop_crossfade_s=args.loop_crossfade, round_robin=args.round_robin)
+                     loop_crossfade_s=args.loop_crossfade, round_robin=args.round_robin,
+                     loop_seconds=args.loop_seconds, dct_basis=args.basis, dct_lock=args.lock)
     rows = []
     results = []
     if args.jobs > 1 and len(paths) > 1:
@@ -160,9 +161,13 @@ def main(argv: list[str] | None = None) -> int:
                    help="hard budget: total seconds of audio over all files written for a sample")
     a.add_argument("--stage-files", default="delay", choices=["delay", "padded"],
                    help="extra stage/noise files: loop-only + delay opcode (sfizz-calibrated) or zero-padded")
-    a.add_argument("--method", default="auto", choices=["auto", "hybrid", "laroche"],
-                   help="hybrid: tracked partials / original-audio hybrid loops; laroche: frozen loop-locked "
-                        "oscillator bank; auto: run both, keep the better by Metric B")
+    a.add_argument("--method", default="dctloop", choices=["dctloop", "auto", "hybrid", "laroche"],
+                   help="dctloop: loop-periodic-grid reconstruction (default); hybrid: tracked partials / "
+                        "original-audio hybrid loops; laroche: frozen loop-locked oscillator bank; auto: hybrid vs "
+                        "laroche by Metric B")
+    a.add_argument("--loop-seconds", type=float, default=None, help="dctloop: target loop length in seconds")
+    a.add_argument("--basis", default="dft", choices=["auto", "dct", "dft"], help="dctloop synthesis basis (dft keeps the original phases at the join)")
+    a.add_argument("--lock", type=float, default=1.5, help="dctloop harmonic-lock half-width in grid bins")
     a.add_argument("--frozen", default="auto", choices=["auto", "on", "off"], help="laroche: freeze partials")
     a.add_argument("--target-periods", type=float, default=166.0, help="laroche: preferred loop length in periods")
     a.add_argument("--refine", action="store_true", help="laroche: PyTorch MR-STFT refinement of partial/noise gains")
