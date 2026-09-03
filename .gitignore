@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+demo_out*/
+*.ogg
+.pytest_cache/
