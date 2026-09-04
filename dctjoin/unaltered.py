@@ -418,10 +418,10 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
             os.remove(p_tmp)
             if sfz_info is not None and 'audio' in sfz_info:
                 y = sfz_info.pop('audio')
-                p_r = os.path.join(out_dir, f'{stem}_sfizz.wav')
-                sf.write(p_r, np.clip(y, -1, 1), fs, subtype='PCM_16')
-                outputs['sfizz_render'] = p_r
-                if preview:
+                if preview:                                # the render is only kept for the preview
+                    p_r = os.path.join(out_dir, f'{stem}_sfizz.wav')
+                    sf.write(p_r, np.clip(y, -1, 1), fs, subtype='PCM_16')
+                    outputs['sfizz_render'] = p_r
                     orig = _fade(x[seg.onset: seg.end + 1], fs)
                     rep = _fade(y[: min(len(y), len(orig) + int(0.5 * fs))], fs)
                     pv = np.concatenate([orig, np.zeros((int(0.4 * fs), x.shape[1])), rep], axis=0)

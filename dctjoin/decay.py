@@ -156,26 +156,29 @@ def replicate_decaying(path: str, out_dir: str | None = None, seconds: float = 0
     env_db = 20 * np.log10(env + 1e-12)
     peak_db = float(env_db.max())
 
-    # ---- join: the end of the attack budget (the fast part of a piano's decay stays recorded)
-    J = seg.onset + int(round(max_attack_s * fs))
-    Bn = int(round(bridge_s * fs))
-    J = max(J, seg.attack_end + Bn)
-    e_J = float(np.interp(J, pos, env))
-    e_J_db = 20 * math.log10(e_J + 1e-12)
-    # ---- the recording is usable until it has fallen ``env_floor_db`` below its level at the
-    #      join or reaches its (faded) end: that is the range the envelope is fitted over
-    # the recording's real content end: last frame within 70 dB of the peak, minus the fade
+    # ---- the recording's real content end: last frame within 70 dB of the peak, minus the fade
     alive = np.where(env_db > peak_db - 70.0)[0]
     last = int(min(pos[alive[-1]] - int(0.05 * fs), len(x) - 1)) if alive.size else seg.end
+    # ---- join: the end of the attack budget (the fast part of a piano's decay stays recorded),
+    #      but never more than 40 % of a short note — a dying ping needs most of itself for the loop
+    Bn = int(round(bridge_s * fs))
+    J = seg.onset + int(round(max_attack_s * fs))
+    J = min(J, seg.onset + int(0.4 * (last - seg.onset)))
+    J = max(J, seg.attack_end + Bn)
+    if last - J < int(0.2 * fs):
+        raise ValueError(f'{name}: only {(last - J) / fs:.2f}s of note after the join')
+    e_J = float(np.interp(J, pos, env))
+    e_J_db = 20 * math.log10(e_J + 1e-12)
+    # ---- the recording is usable until it has fallen 40 dB below its level at the join or
+    #      reaches its end: that is the range the envelope is fitted over
     below = np.where((pos > J) & (env_db < e_J_db - 40.0))[0]
     env_end = int(min(pos[below[0]] if below.size else last, last))
-    env_end = max(env_end, J + int(0.5 * fs))
+    env_end = int(min(max(env_end, J + int(0.5 * fs)), last))
     # ---- the loop's analysis body is the first part of that, before the timbre has drifted:
     #      until the level is body_floor_db (default 20 dB) below the join, but at least 1 s
+    #      where the note allows (dctloop shortens the loop when the body is under two loops)
     below = np.where((pos > J) & (env_db < e_J_db + body_floor_db))[0]
     end = int(min(max(pos[below[0]] if below.size else env_end, J + int(1.0 * fs)), env_end))
-    if end - J < int(0.25 * fs):
-        raise ValueError(f'{name}: only {(end - J) / fs:.2f}s of body after the join')
     flat, g_flat = flatten(x, fs, J, end, J)
 
     # ---- pitch on the flattened body, loop it (untouched), bridge the attack onto it

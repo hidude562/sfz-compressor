@@ -39,35 +39,66 @@ from dctjoin.decay import replicate_decaying, region_lines_decay  # noqa: E402
 
 # pitched decaying families: attack + loop of the flattened body + the decay handed to the SFZ
 # envelope (dctjoin.decay); built with --decay
-DECAY_PITCHED = {'grand piano', 'harp', 'vibraphone', 'celeste', 'marimba', 'harpsichord'}
+DECAY_PITCHED = {'grand piano', 'harp', 'vibraphone', 'celeste', 'marimba', 'harpsichord', 'crotales', 'percussion'}
 
 SSO = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'Samples')
 
 DECAY_FAMILIES = {'grand piano', 'marimba', 'crotales', 'vibraphone', 'glockenspiel', 'chimes', 'harp',
-                  'xylophone', 'percussion', 'harpsichord', 'organ', 'celeste'}
+                  'xylophone', 'percussion', 'harpsichord', 'celeste'}
+# the organ sustains (one subfolder per stop, notes named by MIDI number: 'organ/great-flute4ft/036-C.flac')
+NESTED_SUSTAIN = {'organ'}
+# inside the percussion folder only these are pitched, decaying and note-named
+PERCUSSION_PITCHED = {'glockenspiel', 'xylophone', 'chimes', 'timpani'}
 SKIP_TOKENS = {'piz', 'pizz', 'stc', 'stacc', 'stac', 'spic', 'spicc', 'spiccato', 'marc', 'marcato', 'trm',
-               'trem', 'tremolo', 'col', 'legno', 'sord', 'mute', 'muted', 'roll', 'mech', 'rr1', 'rr2', 'rr3'}
-IGNORE_TOKENS = {'pb', 'loop'}                      # SSO's pre-looped horns: 'horns-sus-ff-a#2-PB-loop'
+               'trem', 'tremolo', 'col', 'legno', 'sord', 'mute', 'muted', 'roll', 'crsc', 'mech', 'rr1', 'rr2', 'rr3'}
+IGNORE_TOKENS = {'pb', 'loop', 'lh', 'rh'}          # SSO's pre-looped horns 'horns-sus-ff-a#2-PB-loop'; timpani left/right hand
 DYNAMICS = ['pp', 'p', 'mp', 'mf', 'f', 'ff']
+DYNAMIC_ALIASES = {'soft': 'p', 'hard': 'f'}       # celeste-c4-soft / -hard
 _NOTE = re.compile(r'^[a-g](#|b)?-?\d$', re.I)
+_MIDI = re.compile(r'^\d{3}$')
 
 
-def parse_name(stem: str) -> dict | None:
-    """{'variant', 'dynamic', 'note'} from an SSO file stem, or None if there is no note token."""
+def parse_name(stem: str, prefix: str | None = None) -> dict | None:
+    """{'variant', 'dynamic', 'note', 'midi', 'skip'} from an SSO file stem, or None if there is no note.
+    The note is a note token ('a#4') or a 3-digit MIDI number ('036-C' -> 36, letter ignored).
+    ``prefix`` (a subfolder name such as an organ stop) is prepended to the variant."""
     toks = [t for t in re.split(r'[-_ ]', stem) if t]
     note_i = [i for i, t in enumerate(toks) if _NOTE.match(t)]
-    if not note_i:
-        return None
-    ni = note_i[-1]
-    rest = [t for i, t in enumerate(toks) if i != ni and t.lower() not in IGNORE_TOKENS]
-    dyn = [t.lower() for t in rest if t.lower() in DYNAMICS]
-    variant = [t for t in rest if t.lower() not in DYNAMICS]
-    return dict(variant='_'.join(variant).lower() or 'default', dynamic=(dyn[-1] if dyn else None), note=toks[ni],
-                skip=any(t.lower() in SKIP_TOKENS for t in rest))
+    midi = None
+    if note_i:
+        ni = note_i[-1]
+        note = toks[ni]
+        rest = [t for i, t in enumerate(toks) if i != ni]
+    else:
+        mi = [i for i, t in enumerate(toks) if _MIDI.match(t) and 0 <= int(t) <= 127]
+        if not mi:
+            return None
+        midi = int(toks[mi[0]])
+        note = toks[mi[0]]
+        rest = [t for i, t in enumerate(toks) if i != mi[0] and not re.match(r'^[a-g](#|b)?$', t, re.I)]
+    rest = [t for t in rest if t.lower() not in IGNORE_TOKENS]
+    dyn = [DYNAMIC_ALIASES.get(t.lower(), t.lower()) for t in rest if DYNAMIC_ALIASES.get(t.lower(), t.lower()) in DYNAMICS]
+    variant = [t for t in rest if DYNAMIC_ALIASES.get(t.lower(), t.lower()) not in DYNAMICS]
+    if prefix:
+        variant = [prefix.replace('-', '_')] + variant
+    return dict(variant='_'.join(variant).lower().replace(' ', '_') or 'default', dynamic=(dyn[-1] if dyn else None),
+                note=note, midi=midi, skip=any(t.lower() in SKIP_TOKENS for t in rest))
+
+
+def _audio_files(folder: str):
+    """(relative subdir or '', file) for the audio files directly in ``folder`` and one level down."""
+    for f in sorted(os.listdir(folder)):
+        p = os.path.join(folder, f)
+        if os.path.isdir(p) and not os.path.islink(p):
+            for g in sorted(os.listdir(p)):
+                if g.lower().endswith(('.wav', '.flac', '.aif', '.aiff')):
+                    yield f, g
+        elif f.lower().endswith(('.wav', '.flac', '.aif', '.aiff')):
+            yield '', f
 
 
 def find_sustains(root: str = SSO, folders: set | None = None, decay: bool = False):
-    """(included: [(path, folder, variant, dynamic)], excluded: [(relpath, reason)]).  With
+    """(included: [(path, folder, variant, dynamic, midi)], excluded: [(relpath, reason)]).  With
     ``decay`` the pitched decaying families are selected instead of the sustaining ones."""
     inc, exc = [], []
     for d in sorted(os.listdir(root)):
@@ -76,25 +107,36 @@ def find_sustains(root: str = SSO, folders: set | None = None, decay: bool = Fal
             continue
         if folders and d.lower() not in folders:
             continue
-        for f in sorted(os.listdir(full)):
-            if not f.lower().endswith(('.wav', '.flac', '.aif', '.aiff')):
+        seen_stems = set()
+        for sub, f in _audio_files(full):
+            rel = os.path.join(d, sub, f) if sub else os.path.join(d, f)
+            stem_key = (sub, os.path.splitext(f)[0].lower())
+            if stem_key in seen_stems:                    # the same note as .wav and .flac: keep the first
+                exc.append((rel, 'duplicate of another format of the same note'))
                 continue
-            rel = os.path.join(d, f)
+            seen_stems.add(stem_key)
+            if sub and d.lower() not in NESTED_SUSTAIN:
+                exc.append((rel, 'nested folder not handled'))
+                continue
+            info = parse_name(os.path.splitext(f)[0], prefix=sub or None)
             if decay:
-                if d.lower() not in DECAY_PITCHED:
+                if d.lower() == 'percussion':
+                    if info is None or not (set(info['variant'].split('_')) & PERCUSSION_PITCHED):
+                        exc.append((rel, 'unpitched percussion'))
+                        continue
+                elif d.lower() not in DECAY_PITCHED:
                     exc.append((rel, 'not a pitched decaying family'))
                     continue
             elif d.lower() in DECAY_FAMILIES:
                 exc.append((rel, 'decay family'))
                 continue
-            info = parse_name(os.path.splitext(f)[0])
             if info is None:
                 exc.append((rel, 'no note in the name'))
                 continue
             if info['skip']:
                 exc.append((rel, 'short articulation'))
                 continue
-            inc.append((os.path.join(full, f), d, info['variant'], info['dynamic']))
+            inc.append((os.path.join(full, sub, f) if sub else os.path.join(full, f), d, info['variant'], info['dynamic'], info['midi']))
     return inc, exc
 
 
@@ -150,6 +192,9 @@ def _default_variant(variants: list[str]) -> str:
     instrument name (no articulation token), else the first alphabetically."""
     for v in variants:
         if v.endswith('_sus') or '_sus_' in v:
+            return v
+    for v in variants:                                   # the organ: the 8 ft principal is the natural default
+        if 'opendiapason8ft' in v:
             return v
     plain = [v for v in variants if not any(t in v for t in ('hrm', 'vib', 'nv'))]
     return plain[0] if plain else variants[0]
@@ -236,7 +281,7 @@ def write_reports(out_dir: str) -> None:
     inc_s, exc_s = find_sustains()
     inc_d, exc_d = find_sustains(decay=True)
     rows = []
-    for path, folder, variant, dyn in inc_s + inc_d:
+    for path, folder, variant, dyn, _midi in inc_s + inc_d:
         rel = os.path.relpath(path, SSO)
         if rel in done:
             j = done[rel]
@@ -289,7 +334,9 @@ def combine(out_dir: str, remove_note_sfz: bool = True) -> list:
         groups = defaultdict(list)
         for jp in sorted(glob_json(fdir)):
             j = json.load(open(jp))
-            info = parse_name(os.path.splitext(os.path.basename(j['source']))[0])
+            src_dir = os.path.basename(os.path.dirname(j['source']))
+            prefix = src_dir if src_dir.lower() != folder.lower() else None      # organ stop subfolder
+            info = parse_name(os.path.splitext(os.path.basename(j['source']))[0], prefix=prefix)
             if info is None:
                 continue
             rep = SimpleNamespace(keycenter=j['keycenter'], tune_cents=j['tune_cents'], loop_start=j['loop_start'],
@@ -424,24 +471,28 @@ def main(argv=None):
     inc, exc = find_sustains(folders=folders, decay=a.decay)
     if a.limit:
         inc = inc[:a.limit]
-    print(f'{len(inc)} sustained files in {len({d for _, d, _, _ in inc})} folders; {len(exc)} skipped')
+    print(f'{len(inc)} files in {len({d for _, d, _, _, _ in inc})} folders; {len(exc)} skipped')
     os.makedirs(a.out, exist_ok=True)
     manifest = [(rel, 'skipped', why) for rel, why in exc]
     groups = defaultdict(list)                      # (folder, variant) -> [(Replication, dynamic)]
     rows, t0, fails = [], time.time(), 0
-    for i, (path, folder, variant, dyn) in enumerate(inc, 1):
+    for i, (path, folder, variant, dyn, midi) in enumerate(inc, 1):
         rel = os.path.relpath(path, SSO)
         out_dir = os.path.join(a.out, folder)
+        # a name with a MIDI number (the organ) states its pitch outright; a stem is needed that
+        # keeps the stop, since every stop has the same note names
+        f0 = 440.0 * 2.0 ** ((midi - 69) / 12.0) if midi is not None else None
+        stem = (variant + '-' + os.path.splitext(os.path.basename(path))[0]) if midi is not None else None
         try:
             if a.decay:
                 r = replicate_decaying(path, out_dir, a.loop, basis=a.basis, max_attack_s=a.max_attack, sfizz=not a.no_sfizz,
                                        preview=a.preview, bits=a.bits, format=a.format, quality=a.quality,
-                                       hint_mult=2.0 ** a.hint_octave)
+                                       hint_mult=2.0 ** a.hint_octave, f0=f0, stem=stem)
                 held = f'env fit {r.render_env_err_db[0]:.1f}/{r.render_env_err_db[1]:.1f} dB' if r.render_env_err_db else 'no render'
             else:
                 r = replicate_unaltered(path, out_dir, a.loop, method='bridge', basis=a.basis, max_attack_s=a.max_attack,
                                         bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False, bits=a.bits,
-                                        format=a.format, quality=a.quality)
+                                        format=a.format, quality=a.quality, f0=f0, stem=stem)
                 held = 'ok' if (r.sfizz is None or r.sfizz.get('ok')) else 'sfizz hold FAIL'
             groups[(folder, variant)].append((r, dyn))
             rows.append((rel, r))
