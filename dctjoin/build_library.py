@@ -3,6 +3,7 @@ untouched dctloop loop, and write one playable .sfz per instrument variant.
 
     python3 dctjoin/build_library.py [-o dctjoin_library] [--loop 0.5] [--max-attack 0.5]
                                      [--folders trumpet,horns] [--limit N] [--no-sfizz]
+    python3 dctjoin/build_library.py -o dctjoin_library --combine-only     # just the .sfz files
 
 Selection: string, woodwind, brass and chorus folders; sustained articulations only (sus,
 plain notes, harmonics, arco vib / non-vib).  Short articulations (pizzicato, staccato,
@@ -13,7 +14,9 @@ Grouping: files in a folder are grouped by *variant* (every token in the name ex
 and the dynamic: 'trumpet', '1st-violins-sus', '1st-violins-hrm', 'fl2_sus_vb', 'horns-sus')
 and, within a variant, by *dynamic* (pp p mp mf f ff -> velocity layers).  Each variant becomes
 <out>/<Folder>/<variant>.sfz with contiguous key ranges split at the midpoints between the
-notes actually present and velocity ranges split evenly between the dynamics present.
+notes actually present and velocity ranges split evenly between the dynamics present, and each
+folder becomes <out>/<Folder>/<Folder>.sfz holding every variant: one plays as it is, several
+are keyswitched (keys below the playing range, the sustain articulation as default).
 
 Per note the replication is dctjoin.unaltered.replicate_unaltered (method='bridge', loop
 untouched, attack <= --max-attack); the loop is exactly dctloop's.  <out>/manifest.md lists
@@ -112,27 +115,126 @@ def write_variant_sfz(path: str, variant: str, folder: str, reps: list) -> int:
     lines = [f'// dctjoin replication: {folder} / {variant}, {len(reps)} notes, '
              f'{len(vr)} velocity layer(s).  Recorded attack -> untouched dctloop loop.',
              '<control>', 'default_path=', '<global>', 'loop_mode=loop_continuous']
+    rl, n = region_lines(reps)
+    lines += rl
+    with open(path, 'w') as fh:
+        fh.write('\n'.join(lines) + '\n')
+    return n
+
+
+KEYSWITCH_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+
+def _note_name(k: int) -> str:
+    return f'{KEYSWITCH_NAMES[k % 12]}{k // 12 - 1}'
+
+
+def _default_variant(variants: list[str]) -> str:
+    """The articulation that plays with no keyswitch: 'sus' if there is one, else the plain
+    instrument name (no articulation token), else the first alphabetically."""
+    for v in variants:
+        if v.endswith('_sus') or '_sus_' in v:
+            return v
+    plain = [v for v in variants if not any(t in v for t in ('hrm', 'vib', 'nv'))]
+    return plain[0] if plain else variants[0]
+
+
+def region_lines(reps: list, sw_last: int | None = None) -> tuple[list[str], int]:
+    """<region> lines for one variant: reps = [(rep, dynamic)], contiguous key ranges per dynamic,
+    velocity ranges from the dynamics present, an optional keyswitch.  Returns (lines, n_regions)."""
+    vr = vel_ranges([d for _, d in reps])
     by_dyn = defaultdict(list)
-    for r, d in reps:
-        by_dyn[d].append(r)
-    n = 0
-    for d, rs in by_dyn.items():
-        # notes with the same key: keep the first (the manifest records the rest)
+    for r, dyn in reps:
+        by_dyn[dyn].append(r)
+    lines, n = [], 0
+    for dyn, rs in by_dyn.items():
         seen, uniq = set(), []
         for r in sorted(rs, key=lambda r: r.keycenter):
             if r.keycenter in seen:
                 continue
             seen.add(r.keycenter)
             uniq.append(r)
-        lo_v, hi_v = vr.get(d, (1, 127))
+        lo_v, hi_v = vr.get(dyn, (1, 127))
         for r, (lo, hi) in zip(uniq, key_ranges([r.keycenter for r in uniq])):
+            sw = f' sw_last={sw_last}' if sw_last is not None else ''
             lines.append(f'<region> sample={os.path.basename(r.outputs["audio"])} pitch_keycenter={r.keycenter} '
                          f'lokey={lo} hikey={hi} lovel={lo_v} hivel={hi_v} tune={int(round(-r.tune_cents))} '
-                         f'loop_start={r.loop_start} loop_end={r.loop_end} ampeg_release={r.release_sfz:.3f}')
+                         f'loop_start={r.loop_start} loop_end={r.loop_end} ampeg_release={r.release_sfz:.3f}{sw}')
             n += 1
+    return lines, n
+
+
+def write_instrument_sfz(path: str, folder: str, groups: dict) -> dict:
+    """One .sfz for a whole instrument folder: groups = {variant: [(rep, dynamic)]}.  A single
+    variant plays as it is; several are keyswitched (sw_lokey..sw_hikey below the playing range,
+    sw_default = the sustain articulation), one <group> per variant."""
+    variants = sorted(groups)
+    info = dict(variants=variants, regions=0, keyswitches={})
+    lines = [f'// dctjoin replication: {folder} - {len(variants)} articulation(s), recorded attack -> untouched dctloop loop.',
+             '<control>', 'default_path=']
+    if len(variants) == 1:
+        lines += ['<global>', 'loop_mode=loop_continuous']
+        rl, n = region_lines(groups[variants[0]])
+        lines += rl
+        info['regions'] = n
+    else:
+        lowest = min(kr[0] for reps in groups.values() for kr in key_ranges([r.keycenter for r, _ in reps]))
+        ks0 = 12 if lowest > 12 + len(variants) else 0
+        default = _default_variant(variants)
+        ks = {v: ks0 + i for i, v in enumerate(variants)}
+        lines[0] += (f'  Keyswitches {_note_name(ks0)}..{_note_name(ks0 + len(variants) - 1)} '
+                     f'(MIDI {ks0}..{ks0 + len(variants) - 1}); default {default}.')
+        for v in variants:
+            lines.append(f'//   {_note_name(ks[v])} ({ks[v]:3d}): {v}')
+        lines += ['<global>', f'loop_mode=loop_continuous sw_lokey={ks0} sw_hikey={ks0 + len(variants) - 1} sw_default={ks[default]}']
+        for v in variants:
+            lines.append(f'<group> sw_last={ks[v]} sw_label={v}')
+            rl, n = region_lines(groups[v], sw_last=None)
+            lines += rl
+            info['regions'] += n
+        info['keyswitches'] = ks
     with open(path, 'w') as fh:
         fh.write('\n'.join(lines) + '\n')
-    return n
+    return info
+
+
+def combine(out_dir: str, remove_note_sfz: bool = True) -> list:
+    """Build every <Folder>/<Folder>.sfz (and refresh the per-variant .sfz files) from the
+    per-note .json files already in ``out_dir``; optionally delete the per-note .sfz files."""
+    import json
+    from types import SimpleNamespace
+    results = []
+    for folder in sorted(os.listdir(out_dir)):
+        fdir = os.path.join(out_dir, folder)
+        if not os.path.isdir(fdir):
+            continue
+        groups = defaultdict(list)
+        for jp in sorted(glob_json(fdir)):
+            j = json.load(open(jp))
+            info = parse_name(os.path.splitext(os.path.basename(j['source']))[0])
+            if info is None:
+                continue
+            rep = SimpleNamespace(keycenter=j['keycenter'], tune_cents=j['tune_cents'], loop_start=j['loop_start'],
+                                  loop_end=j['loop_end'], release_sfz=j['release_sfz'], outputs=j['outputs'])
+            groups[info['variant']].append((rep, info['dynamic']))
+        if not groups:
+            continue
+        if remove_note_sfz:
+            for sp in os.listdir(fdir):
+                if sp.endswith('.sfz'):
+                    with open(os.path.join(fdir, sp)) as fh:
+                        first = fh.readline()
+                    if first.startswith('// dctjoin (unaltered loop) replication of') or first.startswith('// temporary'):
+                        os.remove(os.path.join(fdir, sp))
+        for v, reps in groups.items():
+            write_variant_sfz(os.path.join(fdir, f'{v}.sfz'), v, folder, reps)
+        inst = write_instrument_sfz(os.path.join(fdir, f'{folder}.sfz'), folder, groups)
+        results.append((folder, inst))
+    return results
+
+
+def glob_json(fdir: str) -> list:
+    return [os.path.join(fdir, f) for f in os.listdir(fdir) if f.endswith('.json')]
 
 
 def main(argv=None):
@@ -146,7 +248,14 @@ def main(argv=None):
     ap.add_argument('--limit', type=int)
     ap.add_argument('--no-sfizz', action='store_true')
     ap.add_argument('--preview', action='store_true', help='also write the A/B preview per note (large)')
+    ap.add_argument('--combine-only', action='store_true',
+                    help='only (re)write the per-instrument and per-variant .sfz files from an existing output')
     a = ap.parse_args(argv)
+    if a.combine_only:
+        for folder, inst in combine(a.out):
+            ks = ', '.join(f'{_note_name(k)}={v}' for v, k in inst['keyswitches'].items()) if inst['keyswitches'] else 'no keyswitch'
+            print(f'  {folder + ".sfz":28s} {inst["regions"]:3d} regions, {len(inst["variants"])} articulation(s): {ks}')
+        return 0
 
     folders = {f.strip().lower() for f in a.folders.split(',')} if a.folders else None
     inc, exc = find_sustains(folders=folders)
@@ -162,7 +271,7 @@ def main(argv=None):
         out_dir = os.path.join(a.out, folder)
         try:
             r = replicate_unaltered(path, out_dir, a.loop, method='bridge', basis=a.basis, max_attack_s=a.max_attack,
-                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview)
+                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False)
             groups[(folder, variant)].append((r, dyn))
             rows.append((rel, r))
             held = 'ok' if (r.sfizz is None or r.sfizz.get('ok')) else 'sfizz hold FAIL'
@@ -179,6 +288,8 @@ def main(argv=None):
     for (folder, variant), reps in sorted(groups.items()):
         p = os.path.join(a.out, folder, f'{variant}.sfz')
         write_variant_sfz(p, variant, folder, reps)
+        n_sfz += 1
+    for folder, inst in combine(a.out):
         n_sfz += 1
 
     with open(os.path.join(a.out, 'manifest.md'), 'w') as fh:

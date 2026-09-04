@@ -250,7 +250,7 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
                         min_bridge_s: float = 0.12, periods: float = 4.0, xfade_s: float = 0.01,
                         ramp_s: float = 0.08, morph: bool = False, morph_s: float = 0.25, morph_max_db: float = 6.0,
                         format: str = 'flac', preview: bool = True, sfizz: bool = True,
-                        stem: str | None = None, verbose: bool = False) -> Replication:
+                        note_sfz: bool = True, stem: str | None = None, verbose: bool = False) -> Replication:
     """Recorded note in, attack + untouched dctloop loop out.  See the module docstring.
 
     The loop is exactly what ``dctloop.loop_file`` would make of this file at ``seconds`` (same
@@ -369,12 +369,13 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
         p_audio = os.path.join(out_dir, f'{stem}.{ext}')
         sf.write(p_audio, out * file_gain, fs, subtype='PCM_24')
         outputs['audio'] = p_audio
-        p_sfz = os.path.join(out_dir, f'{stem}.sfz')
-        # the recording is `tune` cents above `key`; pitch_keycenter plays it at native pitch, so the
-        # instrument needs tune=-offset to land on concert pitch (dctjoin.sfz.key_and_tune returns +offset)
-        write_sfz(p_sfz, [dict(sample=f'{stem}.{ext}', keycenter=key, tune_cents=-tune, loop_start=ls, loop_end=le,
-                               release=T_rel)], header=f'dctjoin (unaltered loop) replication of {name}')
-        outputs['sfz'] = p_sfz
+        if note_sfz:
+            p_sfz = os.path.join(out_dir, f'{stem}.sfz')
+            # the recording is `tune` cents above `key`; pitch_keycenter plays it at native pitch, so the
+            # instrument needs tune=-offset to land on concert pitch (dctjoin.sfz.key_and_tune returns +offset)
+            write_sfz(p_sfz, [dict(sample=f'{stem}.{ext}', keycenter=key, tune_cents=-tune, loop_start=ls, loop_end=le,
+                                   release=T_rel)], header=f'dctjoin (unaltered loop) replication of {name}')
+            outputs['sfz'] = p_sfz
         note_on = (seg.release_onset - seg.onset) / fs
         if sfizz:
             # render at native pitch (tune=0) so the A/B preview compares like with like
