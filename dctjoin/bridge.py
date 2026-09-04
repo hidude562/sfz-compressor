@@ -17,9 +17,10 @@ Per channel and per harmonic band h (the frequencies within half a harmonic spac
                           p_tgt(t), the trajectory the recording has to arrive on.
 * ``bridge_attack``       write each band as envelope x carrier: the recording's as z_rec(t)
                           exp(i h phi1(t)) with phi1 the tracked fundamental phase, the loop's
-                          as z_tgt(t) exp(i 2 pi f_pk (t - J)) with f_pk the band's strongest
-                          partial.  Both carriers are analytic phases we computed, so their
-                          difference G is smooth and nothing measured is ever unwrapped.  Then,
+                          as z_tgt(t) exp(i psi(t)) with psi the phase of the band's content
+                          smoothed over 25 ms (so a frozen vibrato pattern is in the carrier,
+                          not spinning the envelope).  Both carriers are smooth by
+                          construction, so their difference G is smooth.  Then,
                           with s(t) a raised cosine from 0 at J-B to 1 at J:
 
                               carrier_m = h phi1 + s * G,           |G(J)| <= pi
@@ -152,8 +153,15 @@ def _f0_track(x: np.ndarray, fs: int, fc: float, c: int, centres: np.ndarray, pe
     f_int = np.where(den > 0, num / np.maximum(den, 1e-30), fc)
     f_int = np.clip(f_int, fc * (1 - max_dev), fc * (1 + max_dev))
     f = np.concatenate([[f_int[0]], 0.5 * (f_int[1:] + f_int[:-1]), [f_int[-1]]])
+    # smooth over a fixed time (25 ms), not a fixed number of frames: at a high f0 the hop is under
+    # a millisecond and a 3-frame average leaves jitter that the morph would print onto the loop's
+    # component as sidebands; 25 ms still passes vibrato untouched
+    hop_s = float(np.median(np.diff(centres))) / fs if K > 1 else 0.005
+    kk = int(max(3, round(0.025 / hop_s)) | 1)
     if K >= 3:
-        f = np.convolve(np.pad(f, 1, mode='edge'), np.ones(3) / 3, mode='valid')
+        kern = get_window('hann', kk, fftbins=False)
+        kern = kern / kern.sum()
+        f = np.convolve(np.pad(f, kk // 2, mode='edge'), kern, mode='valid')[:K]
     return f
 
 
@@ -271,10 +279,21 @@ def bridge_attack(x: np.ndarray, fs: int, J: int, loop: np.ndarray, f0: list | f
     s = raised_cosine(M + 1)[:, None, None]                                   # 0 at t0 -> 1 at J
     floor = 10 ** (amp_floor_db / 20)
 
-    # carriers: analytic phases we computed ourselves, so their difference is smooth and needs no
-    # unwrapping — the recording's h * phi1(t) (pitch-following) and the loop's 2 pi f_pk (t - J)
+    # carriers.  The recording's is h * phi1(t) from the smoothed pitch track, so its vibrato is in
+    # the carrier and its envelope is slow.  The loop's band gets the same treatment: the phase of
+    # its content smoothed over 25 ms (a frozen vibrato pattern spins the band's phase at tens of
+    # hertz; left in the envelope it would beat against the recording's still envelope mid-bridge)
     ph_rec = trk['carrier']
-    ph_tgt = 2 * np.pi * fpk[None] * ((centres - J) / fs)[:, None, None]
+    ph_nom = 2 * np.pi * fpk[None] * ((centres - J) / fs)[:, None, None]      # nominal: strongest partial
+    base = T * np.exp(-1j * ph_nom)                                            # slow baseband of the band
+    kc = int(max(3, round(0.025 * fs / hop)) | 1)
+    kern_c = get_window('hann', kc, fftbins=False)
+    kern_c = kern_c / kern_c.sum()
+    bpad = np.concatenate([np.repeat(base[:1], kc // 2, axis=0), base, np.repeat(base[-1:], kc // 2, axis=0)], axis=0)
+    bs = np.zeros_like(base)
+    for i in range(kc):
+        bs += kern_c[i] * bpad[i: i + len(base)]
+    ph_tgt = ph_nom + np.unwrap(np.angle(bs), axis=0)                          # carrier = nominal + smoothed deviation
     G = ph_tgt - ph_rec
     G = G - 2 * np.pi * np.round(G[-1:] / (2 * np.pi))                        # |G(J)| <= pi
     ph_m = ph_rec + s * G                                                     # carrier glides onto the loop's
@@ -319,14 +338,23 @@ def bridge_attack(x: np.ndarray, fs: int, J: int, loop: np.ndarray, f0: list | f
     # added an event).  Per channel, not the mono sum: the loop's inter-channel phases differ
     # from the recording's, so the bridge glides each harmonic's L-R phase, which changes the
     # mono sum smoothly but is no event in either channel
+    # The reference is the larger of the recording's own largest event and the loop's own (the
+    # loop tiled over the same span): the bridge fades the loop's texture in, so a loop that
+    # itself beats — vibrato sidebands outside dctloop's lock become separate partials — shows
+    # its own modulation inside the bridge, which is the loop's character, not a bridge defect.
+    # loop_flux_vs_rec_db says how much more eventful the loop is than the recording.
     from .join import _flux
-    vals = []
+    tiled = np.tile(loop, (int(np.ceil((J - t0) / len(loop))) + 1, 1))[: J - t0]
+    vals, lv = [], []
     for c in range(C):
         fo, _ = _flux(out[t0:J, c], fs)
         fx, _ = _flux(x[t0:J, c], fs)
-        if fo.size and fx.size:
-            vals.append(20 * np.log10((fo.max() + 1e-9) / (fx.max() + 1e-9)))
+        fl, _ = _flux(tiled[:, c], fs)
+        if fo.size and fx.size and fl.size:
+            vals.append(20 * np.log10((fo.max() + 1e-9) / (max(fx.max(), fl.max()) + 1e-9)))
+            lv.append(20 * np.log10((fl.max() + 1e-9) / (fx.max() + 1e-9)))
     bridge_flux_db = float(max(vals)) if vals else 0.0
+    loop_flux_vs_rec_db = float(max(lv)) if lv else 0.0
 
     step_db = 20 * np.log10(A_tgt[-1] / A_rec[-1])
     weight = A_tgt[-1] / (A_tgt[-1].sum(axis=0, keepdims=True) + 1e-20)
@@ -335,6 +363,7 @@ def bridge_attack(x: np.ndarray, fs: int, J: int, loop: np.ndarray, f0: list | f
                 amp_move_db_weighted=float(np.sum(np.abs(step_db) * weight) / C),
                 amp_move_db_max=float(np.max(np.abs(step_db[:12]))) if nh >= 12 else float(np.max(np.abs(step_db))),
                 phase_move_deg_mean=float(np.mean(np.abs(np.degrees(D)))), bridge_flux_db=bridge_flux_db,
+                loop_flux_vs_rec_db=loop_flux_vs_rec_db,
                 model_fit_db=float(20 * np.log10(_rms(x[t0:J] - y_u) / _rms(x[t0:J]))),
                 correction_rms_db=float(20 * np.log10(_rms(y_m - y_u) / _rms(x[t0:J]))))
     return out, info

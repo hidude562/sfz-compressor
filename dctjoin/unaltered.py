@@ -32,6 +32,7 @@ from dataclasses import dataclass, asdict
 import numpy as np
 import soundfile as sf
 from scipy.signal import correlate
+from scipy.signal.windows import get_window
 
 from dctloop import f0_per_channel, find_body, load_audio, loop_signal, measure, note_from_name
 
@@ -334,15 +335,25 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
     # scaled and the bridge still lands exactly; a whole-file gain is a last resort (loop clips)
     attack_gain_db = 0.0
     peak_att = float(np.max(np.abs(out[:ls]))) if ls > 0 else 0.0
-    if peak_att > 0.999 and float(np.max(np.abs(loop))) <= 0.999:
-        ga = 0.999 / peak_att
-        ramp = int(min(ls, max(R, int(0.1 * fs))))
-        gcurve = np.full(ls, ga)
-        gcurve[ls - ramp:] = ga + (1.0 - ga) * raised_cosine(ramp)
+    if peak_att > 0.999:
+        # required gain per sample, eroded over +-R/2 then Hann-smoothed over R: the result is
+        # guaranteed <= the requirement everywhere (each smoothed value averages minima of windows
+        # that contain the sample) and moves slowly.  The last 5 ms are forced back to 1: the
+        # bridge has landed on the loop's level there, which is at or below 0.999 by construction
+        Rn = int(min(ls, max(int(0.06 * fs), 64)))
+        req = np.minimum(1.0, 0.999 / (np.max(np.abs(out[:ls]), axis=1) + 1e-12))
+        from scipy.ndimage import minimum_filter1d
+        ero = minimum_filter1d(req, size=Rn | 1, mode='nearest')
+        kern = get_window('hann', Rn | 1, fftbins=False)
+        kern = kern / kern.sum()
+        gcurve = np.convolve(np.pad(ero, Rn // 2, mode='edge'), kern, mode='valid')[:ls]
+        tail_n = int(min(ls, 0.005 * fs))
+        if tail_n > 1:
+            gcurve[ls - tail_n:] = gcurve[ls - tail_n] + (1.0 - gcurve[ls - tail_n]) * raised_cosine(tail_n)
         out[:ls] *= gcurve[:, None]
-        attack_gain_db = float(20 * np.log10(ga))
+        attack_gain_db = float(20 * np.log10(gcurve.min()))
     peak = float(np.max(np.abs(out)))
-    file_gain = 0.999 / peak if peak > 0.999 else 1.0          # only ever needed if the loop itself clips
+    file_gain = 1.0 / peak if peak > 1.0 else 1.0              # true clipping only; 24-bit PCM takes up to 1.0
     untouched = bool(le - ls + 1 == L and file_gain == 1.0 and np.array_equal(out[ls: le + 1], loop))
     jm = junction_metrics(out, x2, seg.onset, ls, X, fs)
     cm = continuity_metrics(out, x, J, ls, fs, f0_list, loop=loop)
