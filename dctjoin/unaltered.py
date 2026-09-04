@@ -122,6 +122,29 @@ def fit_attack_level(x: np.ndarray, onset: int, J: int, loop: np.ndarray, fs: in
 
 # ------------------------------------------------------------------------------- release, sfizz
 
+OGG_PAD_S = 0.25
+
+
+def pad_after_loop(audio: np.ndarray, loop_start: int, loop_end: int, fs: int, seconds: float = OGG_PAD_S) -> np.ndarray:
+    """The loop continued for ``seconds`` past loop_end (inclusive).  For lossy encoding: with the
+    loop at the very end of the file the codec's last block straddles the seam and degrades it
+    (measured: 41 of 655 seams flagged at Vorbis q1, 3 with this padding).  The padding never
+    plays — loop_end is inclusive and playback jumps back before it."""
+    L = loop_end - loop_start + 1
+    n = int(round(seconds * fs))
+    pad = np.tile(audio[loop_start: loop_end + 1], (n // L + 2, 1))[:n]
+    return np.concatenate([audio[: loop_end + 1], pad], axis=0)
+
+
+def encode_ogg(src_wav_or_flac: str, dst_ogg: str, quality: float = 1.0) -> None:
+    """Vorbis via ffmpeg/libvorbis at -q:a ``quality`` (measured on this library: q1 ~105 kbps,
+    24 dB SNR; q8 ~37 dB).  Vorbis is gapless, so the loop points stay valid.  Pad the audio
+    with ``pad_after_loop`` first so the seam is not the codec's file boundary."""
+    import subprocess
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src_wav_or_flac, '-c:a', 'libvorbis', '-q:a', str(quality), dst_ogg],
+                   check=True)
+
+
 def release_time(x: np.ndarray, fs: int, release_onset: int, end: int) -> tuple[float, float]:
     """(sfizz ampeg_release, seconds the recording takes to fall 60 dB after release_onset).
     sfizz's release is exp(-9 t / T), i.e. -78.2 dB at t = T, so T = D * 78.2 / 60."""
@@ -250,7 +273,7 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
                         min_bridge_s: float = 0.12, periods: float = 4.0, xfade_s: float = 0.01,
                         ramp_s: float = 0.08, morph: bool = False, morph_s: float = 0.25, morph_max_db: float = 6.0,
                         format: str = 'flac', preview: bool = True, sfizz: bool = True,
-                        note_sfz: bool = True, bits: int = 24, stem: str | None = None,
+                        note_sfz: bool = True, bits: int = 24, quality: float = 1.0, stem: str | None = None,
                         verbose: bool = False) -> Replication:
     """Recorded note in, attack + untouched dctloop loop out.  See the module docstring.
 
@@ -366,11 +389,17 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
         os.makedirs(out_dir, exist_ok=True)
         if file_gain != 1.0 and verbose:
             print(f'  [{name}] assembled file peaks at {peak:.3f}: whole file scaled by {20 * math.log10(file_gain):.2f} dB')
-        ext = 'flac' if format == 'flac' else 'wav'
+        ext = {'flac': 'flac', 'wav': 'wav', 'ogg': 'ogg'}[format]
         p_audio = os.path.join(out_dir, f'{stem}.{ext}')
         # bits: 16 halves the file against 24 when the source is 16-bit (SSO is), since the extra
         # bits are incompressible noise; the loop's own noise floor is far above either
-        sf.write(p_audio, out * file_gain, fs, subtype=f'PCM_{int(bits)}')
+        if format == 'ogg':
+            tmp = os.path.join(out_dir, f'{stem}__tmp.wav')
+            sf.write(tmp, pad_after_loop(out * file_gain, ls, le, fs), fs, subtype='PCM_24')
+            encode_ogg(tmp, p_audio, quality)
+            os.remove(tmp)
+        else:
+            sf.write(p_audio, out * file_gain, fs, subtype=f'PCM_{int(bits)}')
         outputs['audio'] = p_audio
         if note_sfz:
             p_sfz = os.path.join(out_dir, f'{stem}.sfz')

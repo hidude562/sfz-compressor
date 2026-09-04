@@ -4,6 +4,7 @@ untouched dctloop loop, and write one playable .sfz per instrument variant.
     python3 dctjoin/build_library.py [-o dctjoin_library] [--loop 0.5] [--max-attack 0.5]
                                      [--folders trumpet,horns] [--limit N] [--no-sfizz]
     python3 dctjoin/build_library.py -o dctjoin_library --combine-only     # just the .sfz files
+    python3 dctjoin/build_library.py --transcode-from dctjoin_library -o dctjoin_library_ogg --format ogg --quality 1
 
 Selection: string, woodwind, brass and chorus folders; sustained articulations only (sus,
 plain notes, harmonics, arco vib / non-vib).  Short articulations (pizzicato, staccato,
@@ -233,6 +234,74 @@ def combine(out_dir: str, remove_note_sfz: bool = True) -> list:
     return results
 
 
+def transcode(src: str, dst: str, fmt: str = 'ogg', quality: float = 1.0) -> int:
+    """Convert an existing library (FLAC) into ``dst`` at ``fmt``: every note's audio is
+    transcoded, its .json copied with the new audio path, the .sfz files rebuilt, and every
+    loop seam of the encoded file measured against the FLAC's (<dst>/seam_check.md)."""
+    import json, shutil, time
+    import numpy as np
+    import soundfile as sf
+    from dctloop import seam_metrics
+    from dctjoin.unaltered import encode_ogg, pad_after_loop
+    t0 = time.time()
+    rows, n, worse = [], 0, 0
+    for folder in sorted(os.listdir(src)):
+        fdir = os.path.join(src, folder)
+        if not os.path.isdir(fdir):
+            continue
+        os.makedirs(os.path.join(dst, folder), exist_ok=True)
+        for jp in sorted(glob_json(fdir)):
+            j = json.load(open(jp))
+            audio = j['outputs']['audio']
+            if not os.path.exists(audio):
+                audio = os.path.join(os.path.dirname(jp), os.path.basename(audio))
+            stem = os.path.splitext(os.path.basename(audio))[0]
+            out_audio = os.path.join(dst, folder, f'{stem}.{fmt}')
+            x, fs = sf.read(audio, dtype='float64', always_2d=True)
+            ls, le = j['loop_start'], j['loop_end']
+            if fmt == 'ogg':
+                xp = pad_after_loop(x, ls, le, fs)
+                tmp = out_audio + '.tmp.wav'
+                sf.write(tmp, xp, fs, subtype='PCM_24')
+                encode_ogg(tmp, out_audio, quality)
+                os.remove(tmp)
+            else:
+                xp = x
+                sf.write(out_audio, x, fs, subtype='PCM_16')
+            y, _ = sf.read(out_audio, dtype='float64', always_2d=True)
+            ok_len = len(y) == len(xp)
+            x = xp
+            s_f = seam_metrics(x[ls:le + 1], fs)['seam_flux_ratio']
+            s_o = seam_metrics(y[ls:le + 1], fs)['seam_flux_ratio'] if ok_len else float('nan')
+            m = min(len(x), len(y))
+            snr = 10 * np.log10(np.mean(x[:m] ** 2) / (np.mean((x[:m] - y[:m]) ** 2) + 1e-20))
+            flag = (not ok_len) or (s_o > 1.5 * s_f and s_o > 2.0)
+            worse += flag
+            rows.append((os.path.join(folder, stem), s_f, s_o, snr, os.path.getsize(out_audio) / os.path.getsize(audio), ok_len, flag))
+            j['outputs']['audio'] = out_audio
+            j['format'] = fmt
+            if fmt == 'ogg':
+                j['ogg_quality'] = quality
+            j['total_seconds'] = len(xp) / fs
+            with open(os.path.join(dst, folder, os.path.basename(jp)), 'w') as fh:
+                json.dump(j, fh, default=float)
+            n += 1
+    for f in ('manifest.md', 'summary.md'):
+        if os.path.exists(os.path.join(src, f)):
+            shutil.copy(os.path.join(src, f), os.path.join(dst, f))
+    combine(dst)
+    with open(os.path.join(dst, 'seam_check.md'), 'w') as fh:
+        fh.write(f'# loop seam check: {fmt} q{quality:g} vs FLAC\n\n{n} files, {worse} flagged '
+                 f'(seam flux ratio > 1.5x the FLAC one and > 2, or a changed sample count)\n\n')
+        fh.write('| file | seam flac | seam encoded | SNR dB | size ratio | flagged |\n|---|---|---|---|---|---|\n')
+        for name, s_f, s_o, snr, ratio, ok_len, flag in sorted(rows, key=lambda r: -(r[2] / max(r[1], 1e-9))):
+            fh.write(f'| {name} | {s_f:.2f} | {s_o:.2f} | {snr:.1f} | {ratio*100:.0f}% | {"YES" if flag else ""}{"" if ok_len else " (length!)"} |\n')
+    snrs = np.array([r[3] for r in rows]); ratios = np.array([r[4] for r in rows])
+    print(f'{n} files transcoded to {fmt} q{quality:g} in {time.time() - t0:.0f}s: size {np.mean(ratios)*100:.0f}% of FLAC, '
+          f'SNR median {np.median(snrs):.1f} dB (min {snrs.min():.1f}), seams flagged {worse}/{n}; wrote {os.path.join(dst, "seam_check.md")}')
+    return 0
+
+
 def glob_json(fdir: str) -> list:
     return [os.path.join(fdir, f) for f in os.listdir(fdir) if f.endswith('.json')]
 
@@ -249,9 +318,16 @@ def main(argv=None):
     ap.add_argument('--no-sfizz', action='store_true')
     ap.add_argument('--preview', action='store_true', help='also write the A/B preview per note (large)')
     ap.add_argument('--bits', type=int, default=16, choices=[16, 24], help='FLAC bit depth (default 16: the SSO sources are 16-bit)')
+    ap.add_argument('--format', default='flac', choices=['flac', 'wav', 'ogg'], help='audio format (default flac)')
+    ap.add_argument('--quality', type=float, default=1.0, help='Vorbis -q:a for --format ogg (default 1: ~105 kbps)')
+    ap.add_argument('--transcode-from', metavar='DIR',
+                    help='do not render: transcode an existing FLAC library DIR into --out at --format/--quality, '
+                         'rebuild its .sfz files and check every loop seam against the FLAC')
     ap.add_argument('--combine-only', action='store_true',
                     help='only (re)write the per-instrument and per-variant .sfz files from an existing output')
     a = ap.parse_args(argv)
+    if a.transcode_from:
+        return transcode(a.transcode_from, a.out, a.format, a.quality)
     if a.combine_only:
         for folder, inst in combine(a.out):
             ks = ', '.join(f'{_note_name(k)}={v}' for v, k in inst['keyswitches'].items()) if inst['keyswitches'] else 'no keyswitch'
@@ -272,7 +348,8 @@ def main(argv=None):
         out_dir = os.path.join(a.out, folder)
         try:
             r = replicate_unaltered(path, out_dir, a.loop, method='bridge', basis=a.basis, max_attack_s=a.max_attack,
-                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False, bits=a.bits)
+                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False, bits=a.bits,
+                                    format=a.format, quality=a.quality)
             groups[(folder, variant)].append((r, dyn))
             rows.append((rel, r))
             held = 'ok' if (r.sfizz is None or r.sfizz.get('ok')) else 'sfizz hold FAIL'
