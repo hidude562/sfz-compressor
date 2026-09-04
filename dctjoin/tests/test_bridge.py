@@ -12,7 +12,8 @@ FS = 44100
 def living_note(f0=440.0, secs=3.5, amps=(1.0, .5, .3, .2, .12, .08), bright=(0.0, 0.5, 1.5, 2.0, 2.5, 3.0),
                 vib_cents=15.0, vib_hz=5.5, trem_db=2.0, trem_hz=4.0, detune=(1.0, 1.0), noise=0.003, seed=0):
     """A note whose early harmonics are brighter than the body (decaying with tau 0.4 s), with vibrato
-    and tremolo throughout and an optional per-channel detune.  Amplitude 0.3 so nothing clips."""
+    and tremolo throughout and an optional per-channel detune.  Level 0.2 so that even the bright
+    start (up to 4x the body's harmonic amplitudes) stays below full scale."""
     rng = np.random.default_rng(seed)
     n = int(secs * FS)
     t = np.arange(n) / FS
@@ -26,7 +27,7 @@ def living_note(f0=440.0, secs=3.5, amps=(1.0, .5, .3, .2, .12, .08), bright=(0.
         for h, (a, b) in enumerate(zip(amps, bright), 1):
             a_t = a * (1 + b * np.exp(-t / 0.4))
             y += a_t * np.cos(h * ph + 0.7 * h + c)
-        chans.append(0.3 * env * trem * y + noise * rng.standard_normal(n))
+        chans.append(0.2 * env * trem * y + noise * rng.standard_normal(n))
     return np.stack(chans, 1)
 
 
@@ -34,7 +35,7 @@ def test_harmonic_tracks_recover_amplitude_frequency_and_phase():
     x = living_note(vib_cents=0.0, trem_db=0.0, bright=(0,) * 6, noise=0.0)
     centres = np.arange(int(1.0 * FS), int(1.2 * FS), 441)
     tr = harmonic_tracks(x, FS, 440.0, 6, centres)
-    want = 0.3 * np.array([1.0, .5, .3, .2, .12, .08])
+    want = 0.2 * np.array([1.0, .5, .3, .2, .12, .08])
     assert np.allclose(tr['amp'][:, :, 0].mean(axis=0), want, rtol=0.03), tr['amp'].mean(axis=0)
     assert np.allclose(tr['freq'][:, :, 0].mean(axis=0), 440.0 * np.arange(1, 7), atol=0.5)
     # total phase at a frame centre equals the synthetic phase there (mod 2 pi)
@@ -49,7 +50,7 @@ def test_loop_harmonics_read_the_loops_grid():
     loop, info = loop_signal(x[int(1.0 * FS):], FS, 0.5, basis='dft', f0=440.0)
     lh = loop_harmonics(loop, FS, 440.0, 6)
     assert np.allclose(lh['f'][:, 0], np.arange(1, 7) * info['K'] * FS / info['L'])
-    assert np.allclose(lh['A'][:, 0], 0.3 * np.array([1.0, .5, .3, .2, .12, .08]), rtol=0.05)
+    assert np.allclose(lh['A'][:, 0], 0.2 * np.array([1.0, .5, .3, .2, .12, .08]), rtol=0.05)
 
 
 @pytest.mark.parametrize('detune', [(1.0, 1.0), (1.0, 1.0035)])
@@ -101,3 +102,27 @@ def test_find_join_bridge_prefers_where_the_timbre_already_matches():
     fj1 = find_join_bridge(x, FS, loop, 440.0, lo, hi, time_weight_db_per_s=20.0)
     assert fj1['J'] < fj0['J']                          # a strong time preference pulls it earlier
     assert fj0['amp_distance_db'] <= fj1['amp_distance_db']
+
+
+def test_attack_budget_is_honoured_and_the_join_stays_continuous():
+    """living_note's brightness decays with tau 0.4 s, so the free search joins late; with a
+    0.5 s budget the join must land inside it and still be exact."""
+    import os, tempfile
+    import soundfile as sf
+    from dctjoin.unaltered import replicate_unaltered
+    x = living_note(secs=4.0)
+    with tempfile.TemporaryDirectory() as d:
+        src = os.path.join(d, 'viola-a4.wav')
+        sf.write(src, x, FS, subtype='PCM_24')
+        free = replicate_unaltered(src, None, 0.5, max_attack_s=None, search_s=1.5, sfizz=False, preview=False)
+        tight = replicate_unaltered(src, None, 0.5, max_attack_s=0.5, search_s=1.5, sfizz=False, preview=False)
+        assert free.attack_s > 0.5
+        assert tight.attack_s <= 0.5 + 1e-6, tight.attack_s
+        assert tight.bridge['amp_move_db_weighted'] >= free.bridge['amp_move_db_weighted']   # more to morph, earlier
+        for r in (free, tight):
+            assert r.loop_untouched
+            assert r.continuity['tail_ncc'] > 0.99, r.continuity
+            assert r.continuity['excess_harm_step_db'] < 0.3 and r.continuity['excess_phase_err_deg'] < 5.0, r.continuity
+        # a budget tighter than the transient + minimum bridge still works (bridge overlaps the transient tail)
+        tiny = replicate_unaltered(src, None, 0.5, max_attack_s=0.15, search_s=1.5, sfizz=False, preview=False)
+        assert tiny.attack_s <= 0.15 + 1e-6 and tiny.loop_untouched and tiny.continuity['tail_ncc'] > 0.98

@@ -243,7 +243,8 @@ class Replication:
 
 def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 0.5, *, method: str = 'bridge',
                         basis: str = 'dft', f0: float | None = None, use_hint: bool = True, lock: float = 1.5,
-                        search_s: float = 0.5, bridge_s: float = 0.3, periods: float = 4.0, xfade_s: float = 0.01,
+                        search_s: float = 0.5, bridge_s: float = 0.3, max_attack_s: float | None = 0.5,
+                        min_bridge_s: float = 0.12, periods: float = 4.0, xfade_s: float = 0.01,
                         ramp_s: float = 0.08, morph: bool = False, morph_s: float = 0.25, morph_max_db: float = 6.0,
                         format: str = 'flac', preview: bool = True, sfizz: bool = True,
                         stem: str | None = None, verbose: bool = False) -> Replication:
@@ -253,10 +254,14 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
     sustain detection, same pitch path, same basis and lock).
 
     method='bridge'  the join J is where the recording's harmonic amplitudes are closest to the
-                     loop's (searched over ``search_s`` after attack_end + bridge_s), the attack's
-                     level is ramped over the bridge, and every harmonic in the last ``bridge_s``
-                     seconds is relaxed onto the loop's amplitude, frequency and phase (bridge.py).
+                     loop's (searched over ``search_s`` after attack_end + bridge_s, and never
+                     later than ``max_attack_s`` after the onset), the attack's level is ramped
+                     over the bridge, and every harmonic in the last ``bridge_s`` seconds is
+                     relaxed onto the loop's amplitude, frequency and phase (bridge.py).
                      Continuous by construction; a short cross-fade only carries the noise over.
+                     If the attack budget is tighter than attack_end + bridge_s the bridge is
+                     shortened (not below ``min_bridge_s``) and, only if that still does not
+                     fit, allowed to overlap the tail of the transient.
     method='splice'  the join J is where the waveform best matches the loop's entry, then level
                      ramp, optional EQ morph and a cross-fade of ``xfade_s`` (the earlier method).
     """
@@ -285,13 +290,22 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
     binfo, tail, applied = None, None, 0.0
     if method == 'bridge':
         Bn = int(round(bridge_s * fs))
+        Bmin = int(round(min_bridge_s * fs))
+        cap = seg.onset + int(max_attack_s * fs) if max_attack_s else len(x)
         lo = seg.attack_end + Bn
-        hi = max(lo, min(lo + int(search_s * fs), seg.release_onset - L // 2, len(x) - Wn - 1))
+        hi = min(lo + int(search_s * fs), seg.release_onset - L // 2, len(x) - Wn - 1, cap)
+        if hi < lo:                                            # budget tighter than attack_end + bridge:
+            Bn = max(Bmin, hi - seg.attack_end)                # shorten the bridge to fit behind the transient
+            lo = seg.attack_end + Bn
+            if hi < lo:                                        # still not: let it overlap the transient's tail
+                lo = hi
+                Bn = max(Bmin, min(Bn, hi - seg.onset - int(0.02 * fs)))
+        Bn = int(min(Bn, hi))
         fj = find_join_bridge(x, fs, loop, f0_list, lo, hi)
         J = fj['J']
         lvl_j = 10 * np.log10(np.sum(x[J - Wn: J] ** 2) / (np.sum(loop[:Wn] ** 2) + 1e-30) + 1e-30)
-        x2, g, R = fit_attack_level(x, seg.onset, J, loop, fs, f0_used, ramp_s=bridge_s)
-        x2, binfo = bridge_attack(x2, fs, J, loop, f0_list, bridge_s=bridge_s)
+        x2, g, R = fit_attack_level(x, seg.onset, J, loop, fs, f0_used, ramp_s=Bn / fs)
+        x2, binfo = bridge_attack(x2, fs, J, loop, f0_list, bridge_s=Bn / fs)
         ncc_j = _ncc_at(x2, loop, J, Wn)
     elif method == 'splice':
         lo = seg.attack_end

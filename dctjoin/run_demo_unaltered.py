@@ -34,6 +34,7 @@ def main(argv=None):
     ap.add_argument('--basis', default='dft', choices=['dct', 'dft'])
     ap.add_argument('--method', default='bridge', choices=['bridge', 'splice'])
     ap.add_argument('--bridge', type=float, default=0.3, help='bridge length in seconds (method=bridge)')
+    ap.add_argument('--max-attack', type=float, default=0.5, help='the join is never later than this after the onset (0 = no limit)')
     ap.add_argument('--xfade', type=float, default=0.01, help='cross-fade length in seconds')
     ap.add_argument('--morph', action='store_true', help='EQ-morph the attack tail (method=splice only)')
     ap.add_argument('--search', type=float, default=0.5, help='seconds to search for the join')
@@ -49,7 +50,8 @@ def main(argv=None):
             inst = os.path.basename(os.path.dirname(rel)).replace(' ', '_')
             out = os.path.join(a.out, tag, inst)
             r = replicate_unaltered(os.path.join(SSO, rel), out, secs, method=a.method, basis=a.basis, morph=a.morph,
-                                    search_s=a.search, bridge_s=a.bridge, xfade_s=a.xfade)
+                                    search_s=a.search, bridge_s=a.bridge, xfade_s=a.xfade,
+                                    max_attack_s=a.max_attack or None)
             print(summary_line(r))
             rows.append((tag, r))
             by_inst[inst].append(r)
