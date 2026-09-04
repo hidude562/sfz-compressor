@@ -214,7 +214,7 @@ def replicate_decaying(path: str, out_dir: str | None = None, seconds: float = 0
     w = 1.0 / np.maximum(g, 1e-3) ** 2                          # relative error: every dB counts the same
     comps = fit_decay((tt - t_h) / fs, g, n_max=n_exp, w=w)
     fit_err = envelope_error_db((tt - t_h) / fs, g, comps)
-    T_rel = release if release is not None else min(release_time(x, fs, seg.release_onset, seg.end)[0], 0.5)
+    T_rel = release if release is not None else DAMPER_RELEASE_S
     key, tune = key_and_tune(f0_used)
 
     outputs, render_err = {}, None
@@ -277,26 +277,39 @@ def replicate_decaying(path: str, out_dir: str | None = None, seconds: float = 0
     return rep
 
 
+DAMPER_RELEASE_S = 0.7            # the SSO grand piano: ampeg_release_oncc72=2 at the controller's default 0.35
+
+
 def region_lines_decay(sample: str, keycenter: int, tune_cents: float, loop_start: int, loop_end: int, hold: float,
                        envelope: list, release: float, lokey: int | None = None, hikey: int | None = None,
                        lovel: int = 1, hivel: int = 127, sw_last: int | None = None) -> list[str]:
-    """One <region> per envelope component, same sample, same key/velocity range: gains add."""
+    """One <region> per envelope component, same sample, same key/velocity range: gains add.
+
+    Release, matching the SSO grand piano's SFZ: the damper release is controller 72 scaled to
+    2 s (``ampeg_release_oncc72=2``; the instrument file sets the controller's default to 0.35,
+    i.e. ``release`` = 0.7 s, and a song's own CC 72 moves it exactly as it moves the original).
+    With the sustain pedal (CC 64) the original samples simply ring on with their natural decay,
+    so the pedal adds release time up to 9 * tau_slow — the fitted slow component — which
+    continues the note's own decay instead of holding it (a 60 s release would) or cutting it."""
     lo = keycenter if lokey is None else lokey
     hi = keycenter if hikey is None else hikey
     sw = f' sw_last={sw_last}' if sw_last is not None else ''
+    tau_slow = max(tau for _, tau in envelope)
+    pedal = float(np.clip(SFZ_EXP * tau_slow - release, 0.0, 60.0))
     lines = []
     for a, tau in envelope:
         T = float(np.clip(SFZ_EXP * tau, 0.001, 100.0))
         lines.append(f'<region> sample={sample} pitch_keycenter={keycenter} lokey={lo} hikey={hi} lovel={lovel} hivel={hivel} '
                      f'tune={int(round(tune_cents))} loop_start={loop_start} loop_end={loop_end} '
                      f'volume={20 * math.log10(max(a, 1e-6)):.2f} ampeg_hold={hold:.3f} ampeg_decay={T:.3f} ampeg_sustain=0 '
-                     f'ampeg_release={release:.3f}{sw}')
+                     f'ampeg_release_oncc72=2 ampeg_releasecc64={pedal:.2f}{sw}')
     return lines
 
 
 def write_decay_sfz(path: str, regions: list[dict], header: str = '', veltrack0: bool = False) -> str:
+    rel = regions[0].get('release', DAMPER_RELEASE_S) if regions else DAMPER_RELEASE_S
     lines = [f'// {header}' if header else '// dctjoin decay replication', '<control>', 'default_path=',
-             '<global>', 'loop_mode=loop_continuous' + (' amp_veltrack=0' if veltrack0 else '')]
+             f'set_hdcc72={rel / 2:.3f}', '<global>', 'loop_mode=loop_continuous' + (' amp_veltrack=0' if veltrack0 else '')]
     for r in regions:
         lines += region_lines_decay(os.path.basename(r['sample']), r['keycenter'], r['tune_cents'], r['loop_start'], r['loop_end'],
                                     r['hold'], r['envelope'], r['release'], r.get('lokey'), r.get('hikey'),

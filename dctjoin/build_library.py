@@ -123,9 +123,14 @@ def vel_ranges(dynamics: list) -> dict:
 def write_variant_sfz(path: str, variant: str, folder: str, reps: list) -> int:
     """reps: list of (Replication, dynamic).  One region per note per dynamic."""
     vr = vel_ranges([d for _, d in reps])
+    decaying = any(getattr(r, 'envelope', None) for r, _ in reps)
     lines = [f'// dctjoin replication: {folder} / {variant}, {len(reps)} notes, '
              f'{len(vr)} velocity layer(s).  Recorded attack -> untouched dctloop loop.',
-             '<control>', 'default_path=', '<global>', 'loop_mode=loop_continuous']
+             '<control>', 'default_path=']
+    if decaying:
+        rel = next(r.release_sfz for r, _ in reps if getattr(r, 'envelope', None))
+        lines.append(f'set_hdcc72={rel / 2:.3f}    // release = CC72 * 2 s, as the SSO grand piano; CC64 rings the note on')
+    lines += ['<global>', 'loop_mode=loop_continuous']
     rl, n = region_lines(reps)
     lines += rl
     with open(path, 'w') as fh:
@@ -189,6 +194,9 @@ def write_instrument_sfz(path: str, folder: str, groups: dict) -> dict:
     info = dict(variants=variants, regions=0, keyswitches={})
     lines = [f'// dctjoin replication: {folder} - {len(variants)} articulation(s), recorded attack -> untouched dctloop loop.',
              '<control>', 'default_path=']
+    dec = [r for reps in groups.values() for r, _ in reps if getattr(r, 'envelope', None)]
+    if dec:
+        lines.append(f'set_hdcc72={dec[0].release_sfz / 2:.3f}    // release = CC72 * 2 s, as the SSO grand piano; CC64 rings the note on')
     if len(variants) == 1:
         lines += ['<global>', 'loop_mode=loop_continuous']
         rl, n = region_lines(groups[variants[0]])
