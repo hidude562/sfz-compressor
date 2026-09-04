@@ -15,21 +15,31 @@ Per channel and per harmonic band h (the frequencies within half a harmonic spac
                           band, evaluated at the same instants.  One partial for a locked
                           harmonic; several, beating, for a section's chorus.  Gives A_tgt(t) and
                           p_tgt(t), the trajectory the recording has to arrive on.
-* ``bridge_attack``       re-synthesise the band twice — from the measured (A_rec, p_rec) and from
-                          the relaxed (A_m, p_m) — and add the difference to the recording:
+* ``bridge_attack``       write each band as envelope x carrier: the recording's as z_rec(t)
+                          exp(i h phi1(t)) with phi1 the tracked fundamental phase, the loop's
+                          as z_tgt(t) exp(i 2 pi f_pk (t - J)) with f_pk the band's strongest
+                          partial.  Both carriers are analytic phases we computed, so their
+                          difference G is smooth and nothing measured is ever unwrapped.  Then,
+                          with s(t) a raised cosine from 0 at J-B to 1 at J:
 
-                              A_m = exp((1-s) ln A_rec + s ln A_tgt)
-                              p_m = p_rec + s * D,   D = p_tgt - p_rec  (unwrapped, |D(J)| <= pi)
+                              carrier_m = h phi1 + s * G,           |G(J)| <= pi
+                              env_m     = (1-s)^p z_rec e^{i s d(t)} + s^p z_tgt
 
-                          with s(t) a raised cosine from 0 at J-B to 1 at J.  At J-B the two
-                          syntheses are identical, so the correction is exactly zero and the
-                          recording is untouched; at J the band has exactly the loop's amplitude,
-                          phase and instantaneous frequency (s' = 0 there).  Everything the model
-                          does not describe — noise, the transient, fluctuations faster than the
+                          d(t) is the phase difference between the two envelopes, from a
+                          smoothed amplitude-weighted cross product (nulls carry no weight, so
+                          they cannot flip it); rotating the recording's envelope by s d(t)
+                          keeps the pair within a quarter turn while both are audible, and p,
+                          between 1 and 1/2 from |d|, makes a coherent pair cross linearly and
+                          a quadrature pair at equal power: no dip, no bump mid-bridge.  The blend
+                          is done in the complex plane, so a band that passes through an
+                          amplitude null (a section's chorus does, constantly) is a smooth curve
+                          rather than a phase jump — the failure mode of any polar morph.
+                          The band is synthesised twice, measured and morphed, and the
+                          difference is added to the recording: zero at J-B, the loop's exact
+                          amplitude, phase and frequency at J, and everything the model does
+                          not describe — noise, the transient, fluctuations faster than the
                           analysis window — passes through unchanged.  Vibrato and tremolo die
-                          away into the loop's own motion instead of stopping dead.  The phase
-                          offset D(J), at most pi, spread over B seconds is a momentary frequency
-                          deviation of at most pi/(4B) Hz: 2.6 Hz for B = 0.3 s.
+                          away into the loop's own motion instead of stopping dead.
 * ``continuity_metrics``  did it work?  Per-harmonic amplitude step and phase error across the
                           join, third-octave band steps, all against the recording's own.
 """
@@ -80,7 +90,7 @@ def loop_band_targets(loop: np.ndarray, fs: int, f0: list | float, nh: int, n_re
     """Complex value T[k, h-1, c] of the loop's band-h content at loop sample n_rel[k] (negative
     before sample 0; the loop is periodic), summing every grid partial within half a harmonic
     spacing of h * f0_c that is within ``rel_db`` of the band's strongest.  Also returns the bins
-    used per (h, c)."""
+    used per (h, c) and fpk[h-1, c], the frequency of the band's strongest partial."""
     if loop.ndim == 1:
         loop = loop[:, None]
     L, C = loop.shape
@@ -90,6 +100,7 @@ def loop_band_targets(loop: np.ndarray, fs: int, f0: list | float, nh: int, n_re
     ph = np.angle(Y)
     fbin = np.arange(len(Y)) * fs / L
     T = np.zeros((len(n_rel), nh, C), dtype=complex)
+    fpk = np.zeros((nh, C))
     used = []
     for c in range(C):
         fc = f0s[min(c, len(f0s) - 1)]
@@ -97,23 +108,67 @@ def loop_band_targets(loop: np.ndarray, fs: int, f0: list | float, nh: int, n_re
             sel = np.where((fbin >= (h - 0.5) * fc) & (fbin < (h + 0.5) * fc) & (np.arange(len(Y)) >= 1))[0]
             if not sel.size:
                 used.append([])
+                fpk[h - 1, c] = h * fc
                 continue
             a = amp[sel, c]
             keep = sel[a >= a.max() * 10 ** (rel_db / 20)]
             used.append([int(m) for m in keep])
+            fpk[h - 1, c] = fbin[sel[int(np.argmax(a))]]
             # sum of partials  a_m exp(i (2 pi m n / L + phi_m))  at every n in n_rel
             T[:, h - 1, c] = np.sum(amp[keep, c][None, :] * np.exp(1j * (2 * np.pi * np.outer(n_rel, keep) / L + ph[keep, c][None, :])), axis=1)
-    return T, used
+    return T, used, fpk
 
 
 # ------------------------------------------------------------------------------- the recording's harmonics
 
+def _f0_track(x: np.ndarray, fs: int, fc: float, c: int, centres: np.ndarray, periods: float,
+              nh_pitch: int = 4, max_dev: float = 0.1) -> np.ndarray:
+    """Per-frame fundamental frequency of channel ``c`` from the first ``nh_pitch`` harmonics
+    (fixed carriers, baseband phase increments, amplitude-squared weighted, 3-frame smoothed),
+    clipped to +-``max_dev`` of the nominal ``fc``."""
+    N = x.shape[0]
+    K = len(centres)
+    if K < 2:
+        return np.full(K, fc)
+    W = int(round(periods * fs / fc)) | 1
+    half = W // 2
+    w = get_window('hann', W, fftbins=False)
+    n_rel = np.arange(-half, half + 1)
+    idx = centres[:, None] + n_rel[None, :]
+    valid = (idx >= 0) & (idx < N)
+    frames = np.where(valid, x[np.clip(idx, 0, N - 1), c], 0.0) * w[None, :]
+    dt = np.diff(centres) / fs
+    num = np.zeros(K - 1)
+    den = np.zeros(K - 1)
+    for h in range(1, nh_pitch + 1):
+        fh = h * fc
+        z = np.sum(frames * np.exp(-2j * np.pi * fh * (n_rel / fs))[None, :], axis=1)
+        z = z * np.exp(-2j * np.pi * fh * (centres / fs))
+        dph = np.angle(z[1:] * np.conj(z[:-1]))
+        f_int = (fh + dph / (2 * np.pi * dt)) / h                       # implied fundamental per interval
+        wt = (np.abs(z[1:]) * np.abs(z[:-1])) * h                        # strong, high harmonics resolve pitch best
+        num += wt * f_int
+        den += wt
+    f_int = np.where(den > 0, num / np.maximum(den, 1e-30), fc)
+    f_int = np.clip(f_int, fc * (1 - max_dev), fc * (1 + max_dev))
+    f = np.concatenate([[f_int[0]], 0.5 * (f_int[1:] + f_int[:-1]), [f_int[-1]]])
+    if K >= 3:
+        f = np.convolve(np.pad(f, 1, mode='edge'), np.ones(3) / 3, mode='valid')
+    return f
+
+
 def harmonic_tracks(x: np.ndarray, fs: int, f0: list | float, nh: int, centres: np.ndarray,
                     periods: float = 6.0) -> dict:
-    """Heterodyne analysis of ``x`` (N, C) at frame ``centres`` (samples): per band h and channel
-    c, amplitude amp[k, h, c], unwrapped total phase phase[k, h, c] (the phase of cos at the frame
-    centre, continuous across frames) and instantaneous frequency freq[k, h, c] (Hz, from the
-    baseband phase increments, so never aliased)."""
+    """Pitch-following heterodyne analysis of ``x`` (N, C) at frame ``centres`` (samples).
+
+    Pass 1 tracks the fundamental f0(t) from the first harmonics; pass 2 demodulates harmonic
+    h with the carrier h * phi1(t), phi1 the fundamental's accumulated phase, so a harmonic
+    stays inside its analysis band however far the pitch wobbles (harmonic 100 of a 41 Hz
+    note moves 20 Hz for a 5-cent wobble; a fixed carrier would lose it).  Per band h and
+    channel c: amp[k, h, c], unwrapped total phase phase[k, h, c] (continuous across frames)
+    and instantaneous frequency freq[k, h, c]; also f0_track[k, c], the complex baseband envelope
+    bb[k, h, c] and the analytic carrier phase carrier[k, h, c] = h * phi1(c_k) (bb * exp(i carrier)
+    is the band's analytic signal at the frame centre; nothing here needs unwrapping)."""
     if x.ndim == 1:
         x = x[:, None]
     N, C = x.shape
@@ -122,9 +177,12 @@ def harmonic_tracks(x: np.ndarray, fs: int, f0: list | float, nh: int, centres: 
     amp = np.zeros((K, nh, C))
     phase = np.zeros((K, nh, C))
     freq = np.zeros((K, nh, C))
+    bb = np.zeros((K, nh, C), dtype=complex)
+    carrier = np.zeros((K, nh, C))
+    f0_track = np.zeros((K, C))
     for c in range(C):
         fc = f0s[min(c, len(f0s) - 1)]
-        W = int(round(periods * fs / fc)) | 1                       # odd: symmetric about the centre
+        W = int(round(periods * fs / fc)) | 1
         half = W // 2
         w = get_window('hann', W, fftbins=False)
         wsum = w.sum()
@@ -132,36 +190,49 @@ def harmonic_tracks(x: np.ndarray, fs: int, f0: list | float, nh: int, centres: 
         idx = centres[:, None] + n_rel[None, :]
         valid = (idx >= 0) & (idx < N)
         frames = np.where(valid, x[np.clip(idx, 0, N - 1), c], 0.0) * w[None, :]
+        # fundamental phase per sample over the span the frames cover
+        f0t = _f0_track(x, fs, fc, c, centres, periods)
+        f0_track[:, c] = f0t
+        n0, n1 = int(idx.min()), int(idx.max()) + 1
+        n_all = np.arange(n0, n1)
+        f_all = np.interp(n_all, centres, f0t)
+        phi1 = 2 * np.pi * np.concatenate([[0.0], np.cumsum(f_all)[:-1]]) / fs      # phase at n = sum_{i<n} f_i
+        phi_frames = phi1[idx - n0]                                                # (K, W)
+        phi_c = phi1[centres - n0]                                                 # (K,)
+        E1 = np.exp(-1j * (phi_frames - phi_c[:, None]))                           # carrier for h = 1, per frame
+        Eh = np.ones_like(E1)
         for h in range(1, nh + 1):
-            fh = h * fc
-            # demodulate with the carrier referred to absolute time: z is the slowly varying
-            # complex envelope (only the deviation from h*f0 is left), safe to unwrap
-            z = np.sum(frames * np.exp(-2j * np.pi * fh * (n_rel / fs))[None, :], axis=1) * (2.0 / wsum)
-            z = z * np.exp(-2j * np.pi * fh * (centres / fs))
-            amp[:, h - 1, c] = np.abs(z)
-            phase[:, h - 1, c] = np.unwrap(np.angle(z)) + 2 * np.pi * fh * (centres / fs)
+            Eh = Eh * E1                                                           # carrier for h
+            z = np.sum(frames * Eh, axis=1) * (2.0 / wsum)                         # A exp(i(theta + h phi1(c_k)))
+            zb = z * np.exp(-1j * h * phi_c)                                       # baseband: A exp(i theta)
+            bb[:, h - 1, c] = zb
+            carrier[:, h - 1, c] = h * phi_c
+            amp[:, h - 1, c] = np.abs(zb)
+            phase[:, h - 1, c] = np.unwrap(np.angle(zb)) + h * phi_c
             if K > 1:
-                dph = np.angle(z[1:] * np.conj(z[:-1]))                  # baseband increment per hop
+                dph = np.angle(zb[1:] * np.conj(zb[:-1]))
                 dt = np.diff(centres) / fs
-                f_int = fh + dph / (2 * np.pi * dt)
+                f_int = h * 0.5 * (f0t[1:] + f0t[:-1]) + dph / (2 * np.pi * dt)
                 freq[:, h - 1, c] = np.concatenate([[f_int[0]], 0.5 * (f_int[1:] + f_int[:-1]), [f_int[-1]]])
             else:
-                freq[:, h - 1, c] = fh
-    return dict(amp=amp, phase=phase, freq=freq, centres=centres)
+                freq[:, h - 1, c] = h * fc
+    return dict(amp=amp, phase=phase, freq=freq, centres=centres, f0_track=f0_track, bb=bb, carrier=carrier)
 
 
-def _synth(amp: np.ndarray, phase: np.ndarray, centres: np.ndarray, n0: int, n1: int) -> np.ndarray:
-    """Sum of bands over samples [n0, n1) from frame-rate amplitude and total phase (K, nh, C),
-    both linearly interpolated between frame centres (hop ~ one period, so exact for a steady
-    partial)."""
+def _synth(env: np.ndarray, carrier: np.ndarray, centres: np.ndarray, n0: int, n1: int) -> np.ndarray:
+    """Sum of bands over samples [n0, n1) from a frame-rate complex envelope env (K, nh, C) and an
+    analytic carrier phase carrier (K, nh, C): Re(env * exp(i carrier)).  The envelope is
+    interpolated linearly in the complex plane (smooth through nulls, no phase unwrapping), the
+    carrier linearly (exact for a steady partial when the hop is about a period or less)."""
     n = np.arange(n0, n1)
-    K, nh, C = amp.shape
+    K, nh, C = env.shape
     out = np.zeros((n1 - n0, C))
     for c in range(C):
         for h in range(nh):
-            a = np.interp(n, centres, amp[:, h, c])
-            p = np.interp(n, centres, phase[:, h, c])
-            out[:, c] += a * np.cos(p)
+            re = np.interp(n, centres, env[:, h, c].real)
+            im = np.interp(n, centres, env[:, h, c].imag)
+            p = np.interp(n, centres, carrier[:, h, c])
+            out[:, c] += re * np.cos(p) - im * np.sin(p)
     return out
 
 
@@ -182,9 +253,11 @@ def bridge_attack(x: np.ndarray, fs: int, J: int, loop: np.ndarray, f0: list | f
     f0s = np.atleast_1d(np.asarray(f0, dtype=float))
     f0m = float(np.exp(np.mean(np.log(f0s))))
     if nh is None:
-        nh = int(min(64, max(1, math.floor(min(max_hz, 0.45 * fs) / f0m))))
+        nh = int(min(200, max(1, math.floor(min(max_hz, 0.45 * fs) / f0m))))
     if hop is None:
-        hop = int(max(32, round(fs / f0m)))                          # about one period
+        # one period, but never more than 5 ms: at low f0 a harmonic band spans many loop-grid
+        # bins and its combined trajectory moves faster than once per period
+        hop = int(max(32, min(round(fs / f0m), round(0.005 * fs))))
     B = int(round(bridge_s * fs))
     M = max(4, B // hop)
     hop = B // M                                                     # frames land exactly on J
@@ -194,31 +267,66 @@ def bridge_attack(x: np.ndarray, fs: int, J: int, loop: np.ndarray, f0: list | f
     centres = t0 + np.arange(M + 1) * hop                            # last centre == J
 
     trk = harmonic_tracks(x, fs, f0s, nh, centres, periods=periods)          # (K, nh, C)
-    T, used = loop_band_targets(loop, fs, f0s, nh, centres - J)               # (K, nh, C) complex
+    T, used, fpk = loop_band_targets(loop, fs, f0s, nh, centres - J)          # (K, nh, C) complex
     s = raised_cosine(M + 1)[:, None, None]                                   # 0 at t0 -> 1 at J
     floor = 10 ** (amp_floor_db / 20)
 
+    # carriers: analytic phases we computed ourselves, so their difference is smooth and needs no
+    # unwrapping — the recording's h * phi1(t) (pitch-following) and the loop's 2 pi f_pk (t - J)
+    ph_rec = trk['carrier']
+    ph_tgt = 2 * np.pi * fpk[None] * ((centres - J) / fs)[:, None, None]
+    G = ph_tgt - ph_rec
+    G = G - 2 * np.pi * np.round(G[-1:] / (2 * np.pi))                        # |G(J)| <= pi
+    ph_m = ph_rec + s * G                                                     # carrier glides onto the loop's
+
+    # envelopes relative to those carriers.  The recording's is rotated progressively by the
+    # residual phase difference at J, so the dominant component arrives in phase; the blend is
+    # done in the complex plane (a band passing through a null is a smooth curve there, not a
+    # phase jump), with a crossfade law between linear (coherent) and equal-power (quadrature)
+    # chosen from that residual difference so the magnitude neither dips nor bumps mid-bridge
+    zb = trk['bb']
+    bt = T * np.exp(-1j * ph_tgt)
+    # phase difference between the envelopes, per frame, from a smoothed amplitude-weighted cross
+    # product (a null in either envelope carries no weight, so it cannot flip the estimate); the
+    # smoothed sequence changes slowly and unwraps safely.  The recording's envelope is rotated by
+    # s * d(t), so while both are audible the pair stays within a quarter turn: no cancellation
+    cross = bt * np.conj(zb)
+    kk = max(3, int(round(0.05 * fs / hop)) | 1)
+    kern = get_window('hann', kk, fftbins=False)
+    kern = kern / kern.sum()
+    cpad = np.concatenate([np.repeat(cross[:1], kk // 2, axis=0), cross, np.repeat(cross[-1:], kk // 2, axis=0)], axis=0)
+    cs = np.zeros_like(cross)
+    for i in range(kk):
+        cs += kern[i] * cpad[i: i + len(cross)]
+    d = np.unwrap(np.angle(cs), axis=0)
+    d_end = ((d[-1:] + np.pi) % (2 * np.pi)) - np.pi                          # (1, nh, C), for the diagnostics
+    zr = zb * np.exp(1j * s * d)
+    dw = np.abs(((d + np.pi) % (2 * np.pi)) - np.pi)
+    pw = 1.0 - dw / (2 * np.pi)                                                # 1 -> linear, 0.5 -> equal power
+    w_r = (1 - s) ** pw
+    w_t = s ** pw
+    env_m = w_r * zr + w_t * bt
+
     A_rec = np.maximum(trk['amp'], floor)
     A_tgt = np.maximum(np.abs(T), floor)
-    amp_m = np.exp((1 - s) * np.log(A_rec) + s * np.log(A_tgt))
-
-    # target total phase, unwrapped with the same convention as the recording's tracks
-    p_rec = trk['phase']
-    p_tgt = np.zeros_like(p_rec)
-    for c in range(C):
-        fc = f0s[min(c, len(f0s) - 1)]
-        for h in range(1, nh + 1):
-            fh = h * fc
-            b = T[:, h - 1, c] * np.exp(-2j * np.pi * fh * ((centres - J) / fs))
-            p_tgt[:, h - 1, c] = np.unwrap(np.angle(b)) + 2 * np.pi * fh * ((centres - J) / fs)
-    D = p_tgt - p_rec
-    D = D - 2 * np.pi * np.round(D[-1:] / (2 * np.pi))                        # |D(J)| <= pi
-    p_m = p_rec + s * D
-
-    y_u = _synth(trk['amp'], p_rec, centres, t0, J)
-    y_m = _synth(amp_m, p_m, centres, t0, J)
+    y_u = _synth(zb, ph_rec, centres, t0, J)
+    y_m = _synth(env_m, ph_m, centres, t0, J)
     out = x.copy()
     out[t0:J] += y_m - y_u
+    D = d_end[0]
+    # interior glitch check: the largest spectral-flux event inside the bridge, relative to the
+    # recording's own largest over the same span, worst channel (> ~3 dB would mean the morph
+    # added an event).  Per channel, not the mono sum: the loop's inter-channel phases differ
+    # from the recording's, so the bridge glides each harmonic's L-R phase, which changes the
+    # mono sum smoothly but is no event in either channel
+    from .join import _flux
+    vals = []
+    for c in range(C):
+        fo, _ = _flux(out[t0:J, c], fs)
+        fx, _ = _flux(x[t0:J, c], fs)
+        if fo.size and fx.size:
+            vals.append(20 * np.log10((fo.max() + 1e-9) / (fx.max() + 1e-9)))
+    bridge_flux_db = float(max(vals)) if vals else 0.0
 
     step_db = 20 * np.log10(A_tgt[-1] / A_rec[-1])
     weight = A_tgt[-1] / (A_tgt[-1].sum(axis=0, keepdims=True) + 1e-20)
@@ -226,7 +334,7 @@ def bridge_attack(x: np.ndarray, fs: int, J: int, loop: np.ndarray, f0: list | f
                 bins_per_band_max=int(max((len(u) for u in used), default=0)),
                 amp_move_db_weighted=float(np.sum(np.abs(step_db) * weight) / C),
                 amp_move_db_max=float(np.max(np.abs(step_db[:12]))) if nh >= 12 else float(np.max(np.abs(step_db))),
-                phase_move_deg_mean=float(np.mean(np.abs(np.degrees(D[-1])))),
+                phase_move_deg_mean=float(np.mean(np.abs(np.degrees(D)))), bridge_flux_db=bridge_flux_db,
                 model_fit_db=float(20 * np.log10(_rms(x[t0:J] - y_u) / _rms(x[t0:J]))),
                 correction_rms_db=float(20 * np.log10(_rms(y_m - y_u) / _rms(x[t0:J]))))
     return out, info
@@ -245,7 +353,7 @@ def find_join_bridge(x: np.ndarray, fs: int, loop: np.ndarray, f0: list | float,
     f0s = np.atleast_1d(np.asarray(f0, dtype=float))
     C = loop.shape[1]
     centres = np.arange(lo, hi + 1, max(1, int(step_s * fs)))
-    T, _ = loop_band_targets(loop, fs, f0s, nh, np.zeros(1))
+    T, _, _ = loop_band_targets(loop, fs, f0s, nh, np.zeros(1))
     A_tgt = np.abs(T[0])                                                       # (nh, C) at loop sample 0
     trk = harmonic_tracks(x, fs, f0s, nh, centres, periods=periods)
     floor = 1e-5
@@ -333,9 +441,12 @@ def continuity_metrics(out: np.ndarray, x: np.ndarray, J: int, loop_start: int, 
                    loop_band_step_db_mean=float(np.mean(np.abs(b_lp))),
                    excess_harm_step_db=float(res['harm_step_db_wmean'] - np.sum(np.abs(a_lp) * wgt)),
                    excess_phase_err_deg=float(res['harm_phase_err_deg_wmean'] - np.sum(p_lp * wgt)))
-    # sample-domain check: does the last `periods` periods of the file match what precedes loop[0]?
-    if loop is not None and loop_start >= n:
-        tail, entry = out[loop_start - n: loop_start], np.tile(loop, (2, 1))[len(loop) - n: len(loop)]
+    # sample-domain check: does the file just before the join match what precedes loop[0]?  A fixed
+    # short span (at most 25 ms): on a low note 8 periods would cover most of the bridge, i.e. the
+    # deliberate blend, not the landing
+    nt = int(min(n, round(0.025 * fs)))
+    if loop is not None and loop_start >= nt:
+        tail, entry = out[loop_start - nt: loop_start], np.tile(loop, (2, 1))[len(loop) - nt: len(loop)]
         num = sum(np.dot(tail[:, c], entry[:, c]) for c in range(C))
         den = math.sqrt(sum(np.dot(tail[:, c], tail[:, c]) for c in range(C)) * sum(np.dot(entry[:, c], entry[:, c]) for c in range(C))) + 1e-20
         res['tail_ncc'] = float(num / den)

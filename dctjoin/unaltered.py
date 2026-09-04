@@ -229,7 +229,9 @@ class Replication:
     loop_start: int
     loop_end: int                # inclusive
     loop_untouched: bool         # out[loop_start:loop_end+1] is exactly the dctloop loop (and no file gain)
-    file_gain: float             # 1.0 unless the assembled file clipped and had to be scaled
+    file_gain: float             # 1.0 unless the loop itself clipped and the whole file had to be scaled
+    attack_clip_db: float        # 0 unless the attack clipped: gain applied to the attack, returning to 1 at the join
+    loop_gain_db: float          # 0 unless dctloop's loop itself exceeded full scale (then dctloop's own 0.999-peak rule)
     total_seconds: float
     release_sfz: float           # ampeg_release written
     release_fall60_s: float      # the recording's own fall time
@@ -281,6 +283,11 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
     f0_used = float(np.exp(np.mean(np.log(good))))
     f0_list = [float(v) if np.isfinite(v) else f0_used for v in f0c]
     loop, linfo = loop_signal(body, fs, seconds, basis=basis, f0=f0_list, lock=lock)
+    # dctloop.loop_file's own rule: a loop that would clip is scaled to 0.999 peak.  Applied here,
+    # before the bridge targets it, so the written loop is exactly what dctloop would write.
+    lp_peak = float(np.max(np.abs(loop)))
+    loop_gain = 0.999 / lp_peak if lp_peak > 0.999 else 1.0
+    loop = loop * loop_gain
     L = len(loop)
     seg_used = body[linfo['analysis_offset']: linfo['analysis_offset'] + linfo['N']]
     lm = measure(seg_used, fs, loop, f0_list)
@@ -322,6 +329,18 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
 
     # ---- splice: recording -> short cross-fade into loop[L-X:] -> the loop itself
     out, ls, le, X = splice(x2, seg.onset, J, loop, fs, xfade_s=xfade_s, f0=f0_used, tail=tail)
+    # clip protection: if only the attack is hot, attenuate the attack with a gain that returns to
+    # exactly 1 at the join (raised cosine over the last ``ramp`` samples), so the loop is never
+    # scaled and the bridge still lands exactly; a whole-file gain is a last resort (loop clips)
+    attack_gain_db = 0.0
+    peak_att = float(np.max(np.abs(out[:ls]))) if ls > 0 else 0.0
+    if peak_att > 0.999 and float(np.max(np.abs(loop))) <= 0.999:
+        ga = 0.999 / peak_att
+        ramp = int(min(ls, max(R, int(0.1 * fs))))
+        gcurve = np.full(ls, ga)
+        gcurve[ls - ramp:] = ga + (1.0 - ga) * raised_cosine(ramp)
+        out[:ls] *= gcurve[:, None]
+        attack_gain_db = float(20 * np.log10(ga))
     peak = float(np.max(np.abs(out)))
     file_gain = 0.999 / peak if peak > 0.999 else 1.0          # only ever needed if the loop itself clips
     untouched = bool(le - ls + 1 == L and file_gain == 1.0 and np.array_equal(out[ls: le + 1], loop))
@@ -375,6 +394,7 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
                       attack_s=(J - seg.onset) / fs, join_ncc=float(ncc_j), join_level_db=float(lvl_j),
                       attack_gain=[float(v) for v in g], ramp_samples=R, xfade_samples=X, morph_db=float(applied),
                       loop_start=ls, loop_end=le, loop_untouched=untouched, file_gain=float(file_gain),
+                      attack_clip_db=attack_gain_db, loop_gain_db=float(20 * math.log10(loop_gain)),
                       total_seconds=len(out) / fs,
                       release_sfz=T_rel, release_fall60_s=D60, junction=jm, continuity=cm, bridge=binfo,
                       loop_metrics=lm, sfizz=sfz_info, outputs=outputs)
@@ -391,7 +411,8 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
 def summary_line(r: Replication) -> str:
     j, m, s, c = r.junction, r.loop_metrics, r.sfizz, r.continuity
     sfz = 'sfizz ok' if (s and s.get('ok')) else ('sfizz FAIL' if s else 'sfizz n/a')
-    br = f" bridge={r.bridge['bridge_samples'] / r.fs:.2f}s move={r.bridge['amp_move_db_weighted']:.1f}dB" if r.bridge else ''
+    br = (f" bridge={r.bridge['bridge_samples'] / r.fs:.2f}s move={r.bridge['amp_move_db_weighted']:.1f}dB "
+          f"interior={r.bridge.get('bridge_flux_db', 0):+.1f}dB") if r.bridge else ''
     return (f'  [{os.path.splitext(os.path.basename(r.source))[0]}] {r.method}/{r.basis} loop={r.loop_seconds:.3f}s '
             f'attack={r.attack_s:.3f}s ncc={r.join_ncc:.2f} lvl={r.join_level_db:+.1f}dB{br} '
             f'| join: harm {c["harm_step_db_wmean"]:.2f}dB/{c["harm_phase_err_deg_wmean"]:.0f}deg bands {c["band_step_db_mean"]:.1f}dB '
