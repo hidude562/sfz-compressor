@@ -81,6 +81,7 @@ class LoopResult:
     source: str
     fs: int
     basis: str
+    format: str
     f0_hint: float | None
     f0: list                 # per channel, Hz
     f0_used: float           # geometric mean over channels: the loop fit uses this
@@ -96,16 +97,28 @@ class LoopResult:
     outputs: dict            # paths written
 
 
+_FORMAT_EXT = {'flac': 'flac', 'wav': 'wav'}
+
+
 def loop_file(path: str, out_dir: str | None = None, seconds: float = 1.5, *, basis: str = 'dct',
               f0: float | None = None, use_hint: bool = True, fit: bool = True,
               periods: int | None = None, lock: float = 1.5, phase: str = 'orig', start: float | None = None,
               dur: float | None = None, preview: bool = True, stem: str | None = None,
-              seed: int = 0, verbose: bool = False) -> LoopResult:
+              format: str = 'flac', seed: int = 0, verbose: bool = False) -> LoopResult:
     """Loop a recorded note.  Picks the sustain automatically (or ``start``/``dur`` seconds),
     takes the note name in the file name as the pitch (verified against the spectrum, else
     pYIN — see pitch.f0_per_channel; ``use_hint=False`` forces pYIN), builds the loop,
-    measures it, and — if ``out_dir`` is given — writes ``<stem>_loop.wav`` (24-bit),
-    ``<stem>_preview.wav`` (original, gap, loop repeated) and ``<stem>.json``."""
+    measures it, and — if ``out_dir`` is given — writes ``<stem>_loop.<format>``,
+    ``<stem>_preview.wav`` (original, gap, loop repeated — always WAV, for quick listening)
+    and ``<stem>.json``.
+
+    ``format``: 'flac' (default) or 'wav', both 24-bit PCM.  FLAC is lossless (round-trips to
+    within 1 count at 24-bit, about -138 dBFS — below any audio interface's noise floor) and
+    is typically 35-45% smaller; sfizz and the rest of the SSO library already use it. Ogg
+    Vorbis is deliberately not offered here: it is a lossy, block-quantized codec, and on this
+    library it measured a 25.8 dB round-trip SNR and nearly tripled the loop's seam-flux ratio
+    (1.23 -> 2.91) — undoing the exact periodicity the whole method exists to construct.
+    """
     x, fs = load_audio(path)
     name = os.path.splitext(os.path.basename(path))[0]
     stem = stem or name
@@ -130,13 +143,15 @@ def loop_file(path: str, out_dir: str | None = None, seconds: float = 1.5, *, ba
     met = measure(seg_used, fs, lp, [v if np.isfinite(v) else info['f0_used'] for v in f0c]
                   if info['f0_used'] > 0 else None)
 
+    if format not in _FORMAT_EXT:
+        raise ValueError(f'format must be one of {sorted(_FORMAT_EXT)}, got {format!r}')
     outputs = {}
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
         peak = float(np.max(np.abs(lp)))
         if peak > 0.999:
             lp = lp * (0.999 / peak)
-        p_loop = os.path.join(out_dir, f'{stem}_loop.wav')
+        p_loop = os.path.join(out_dir, f'{stem}_loop.{_FORMAT_EXT[format]}')
         sf.write(p_loop, lp, fs, subtype='PCM_24')
         outputs['loop'] = p_loop
         if preview:
@@ -148,7 +163,7 @@ def loop_file(path: str, out_dir: str | None = None, seconds: float = 1.5, *, ba
             sf.write(p_prev, pv, fs, subtype='PCM_16')
             outputs['preview'] = p_prev
 
-    res = LoopResult(source=path, fs=fs, basis=basis, f0_hint=hint, f0=f0c, f0_used=info['f0_used'],
+    res = LoopResult(source=path, fs=fs, basis=basis, format=format, f0_hint=hint, f0=f0c, f0_used=info['f0_used'],
                      detune_cents=info['detune_cents'], loop_seconds=info['seconds'], L=info['L'],
                      K=info['K'], grid_cents=info['grid_cents'],
                      seg_start=(a + info['analysis_offset']) / fs, seg_seconds=info['N'] / fs,

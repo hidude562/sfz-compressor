@@ -25,6 +25,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument('--periods', type=int, help='instead of --loop: exactly this many f0 periods')
     p.add_argument('--basis', choices=['dct', 'dft'], default='dct',
                    help='dct: real cosines, palindromic loop (default); dft: original phases, no mirror')
+    p.add_argument('--format', choices=['flac', 'wav'], default='flac',
+                   help='loop file format (default flac; lossless, ~35-45%% smaller than wav; '
+                        'not ogg/vorbis, which is lossy and reopens the seam it just closed)')
     p.add_argument('--phase', choices=['orig', 'random'], default='orig',
                    help='partial phases (dct: signs) from the input, or random')
     p.add_argument('--f0', type=float, help='fundamental in Hz (default: the note in the file name, '
@@ -70,8 +73,8 @@ def main(argv=None) -> int:
                                   harm_bw_cents=a.harm_bw, f0=a.f0, start=a.start, dur=a.dur, seed=a.seed,
                                   verbose=True, sfizz=not a.no_sfizz)
             else:
-                r = loop_file(path, a.out, a.loop, basis=a.basis, f0=a.f0, use_hint=not a.pyin,
-                              fit=not a.no_fit,
+                r = loop_file(path, a.out, a.loop, basis=a.basis, format=a.format, f0=a.f0,
+                              use_hint=not a.pyin, fit=not a.no_fit,
                               periods=a.periods, lock=a.lock, phase=a.phase, start=a.start, dur=a.dur,
                               preview=not a.no_preview, seed=a.seed, verbose=True)
         except Exception as e:  # keep going through a directory

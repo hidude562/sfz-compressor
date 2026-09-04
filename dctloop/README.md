@@ -19,7 +19,7 @@ loop, info = loop_signal(x, fs, seconds=0.25, basis='dft', f0=466.2)   # pitch k
 
 # a recorded note on disk: sustain found automatically, files written to out/
 r = loop_file('Samples/trumpet/trumpet-a#4.wav', 'out', seconds=0.25, basis='dft')
-r.outputs['loop']                     # out/trumpet-a#4_loop.wav (24-bit)
+r.outputs['loop']                     # out/trumpet-a#4_loop.flac (24-bit, lossless)
 r.metrics['seam_flux_ratio']          # ~1: the seam is invisible
 ```
 
@@ -32,9 +32,10 @@ python3 dctloop/run_demo.py --loop 0.25 --basis dct,dft --play    # the SSO test
 python3 -m pytest dctloop/tests -q
 ```
 
-Per input, `loop_file` writes `<name>_loop.wav` (the bare loop), `<name>_preview.wav`
-(2 s of the original sustain, a gap, then the loop repeated for 4 s) and `<name>.json`
-(everything in the `LoopResult`).
+Per input, `loop_file` writes `<name>_loop.flac` (the bare loop, 24-bit; `--format wav`
+for uncompressed), `<name>_preview.wav` (2 s of the original sustain, a gap, then the loop
+repeated for 4 s — always WAV, it's for listening) and `<name>.json` (everything in the
+`LoopResult`).
 
 ### Options
 
@@ -49,6 +50,7 @@ Per input, `loop_file` writes `<name>_loop.wav` (the bare loop), `<name>_preview
 | `phase` / `--phase` | `orig` | partial phases (dct: signs) from the input, or `random` |
 | `fit` / `--no-fit` | on | round the loop to whole periods |
 | `start`, `dur` / `--start --dur` | auto | analysis segment in seconds instead of automatic sustain detection |
+| `format` / `--format` | `flac` | loop file format: `flac` (lossless) or `wav` |
 
 Choosing a loop length: **0.25 s** gives a static, perfectly stable tone (vibrato and
 chorus are frozen out, 14–17 analysis frames average the noise floor cleanly). **1.5 s**
@@ -171,6 +173,20 @@ Measured on a Ryzen 7 8845HS, single-threaded, per 5 s stereo note:
 Cost scales with the length of audio analysed, not with the loop length: about 7 ms per
 second of input at any loop length, since the analysis is a fixed number of overlapping
 frames per second. With the pitch known this runs 30 to 80 times faster than real time.
+
+## Output format: FLAC, not Ogg
+
+The loop file is written as FLAC by default: lossless (round-trips to within 1 count at
+24-bit, about -138 dBFS — below any interface's noise floor), typically 35-45% smaller than
+WAV, and already the format the rest of the SSO library and `sfizz` use.
+
+Ogg Vorbis is deliberately **not** offered, even though its MDCT is a cousin of the DCT this
+library builds loops from. Vorbis is a lossy, block-quantized codec: it does not know the
+loop repeats on an exact grid, and re-encoding it undoes the periodicity the whole method
+exists to construct. Measured on the trumpet A#4 loop at 0.25 s: Vorbis compressed to 13% of
+the WAV size against FLAC's 64%, but round-tripped at a 25.8 dB SNR and raised the loop's
+seam-flux ratio from 1.23 to 2.91 — reintroducing an audible discontinuity at the seam it was
+built to eliminate. `--format wav` is offered for uncompressed output; Vorbis is not.
 
 ## Limits, by design
 

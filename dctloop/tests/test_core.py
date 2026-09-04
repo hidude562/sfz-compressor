@@ -1,8 +1,10 @@
 """Synthetic checks for dctloop (run: python3 -m pytest dctloop/tests -q)."""
 import math
+import os
 
 import numpy as np
 import pytest
+import soundfile as sf
 
 from dctloop import (fit_loop_length, harmonic_am, loop_signal, make_loop, note_from_name, refine_f0,
                      seam_metrics)
@@ -293,3 +295,42 @@ def test_hint_and_pyin_paths_agree_and_use_hint_can_be_forced_off():
     b, ib = loop_signal(x, FS, 0.25, basis='dft', hint=f0 * 1.002, use_hint=False)
     assert ia['pitch']['method'] == 'hint' and ib['pitch']['method'] == 'pyin'
     assert ia['L'] == ib['L'] and np.allclose(a, b)
+
+
+# ---------------------------------------------------------------- output format
+
+def test_flac_loop_is_effectively_lossless_and_smaller_than_wav():
+    """FLAC is the default loop format: verify it round-trips to within 1 count at 24-bit
+    (below any interface's noise floor) and is meaningfully smaller than WAV.  Ogg Vorbis is
+    deliberately not offered as a format: it is lossy and reopens the seam (see the README)."""
+    import tempfile
+    from dctloop import loop_file
+    f0 = 466.16
+    x = tone(f0, 3.0, amps=(1.0, .6, .4, .3, .2, .15), noise=0.01)
+    with tempfile.TemporaryDirectory() as out:
+        src = os.path.join(out, 'trumpet-a#4.wav')
+        sf.write(src, x, FS, subtype='PCM_24')
+        r_flac = loop_file(src, out, 0.25, basis='dft', f0=f0, preview=False, format='flac', stem='flac')
+        r_wav = loop_file(src, out, 0.25, basis='dft', f0=f0, preview=False, format='wav', stem='wav')
+        assert r_flac.outputs['loop'].endswith('.flac')
+        flac_i, _ = sf.read(r_flac.outputs['loop'], dtype='int32', always_2d=True)
+        wav_i, _ = sf.read(r_wav.outputs['loop'], dtype='int32', always_2d=True)
+        assert np.max(np.abs(flac_i.astype(np.int64) - wav_i.astype(np.int64))) <= 256  # <= 1 LSB @ 24-bit
+        flac_sz = os.path.getsize(r_flac.outputs['loop'])
+        wav_sz = os.path.getsize(r_wav.outputs['loop'])
+        # a real instrument loop compressed to ~64% in manual testing; this synthetic, short,
+        # single-channel signal has more header overhead and less structure to predict, so only
+        # assert it is smaller at all, not by how much
+        assert flac_sz < wav_sz, (flac_sz, wav_sz)
+        assert r_flac.metrics['seam_flux_ratio'] == pytest.approx(r_wav.metrics['seam_flux_ratio'], rel=0.05)
+
+
+def test_unknown_format_rejected():
+    from dctloop import loop_file
+    x = tone(440.0, 3.0)
+    import tempfile
+    with tempfile.TemporaryDirectory() as out:
+        src = os.path.join(out, 'a4.wav')
+        sf.write(src, x, FS, subtype='PCM_24')
+        with pytest.raises(ValueError):
+            loop_file(src, None, 0.25, format='ogg')
