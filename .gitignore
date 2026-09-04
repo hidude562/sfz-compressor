@@ -4,3 +4,4 @@ demo_out*/
 *.ogg
 .pytest_cache/
 dctloop_out*/
+/out/
