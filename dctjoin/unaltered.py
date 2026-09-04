@@ -250,7 +250,8 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
                         min_bridge_s: float = 0.12, periods: float = 4.0, xfade_s: float = 0.01,
                         ramp_s: float = 0.08, morph: bool = False, morph_s: float = 0.25, morph_max_db: float = 6.0,
                         format: str = 'flac', preview: bool = True, sfizz: bool = True,
-                        note_sfz: bool = True, stem: str | None = None, verbose: bool = False) -> Replication:
+                        note_sfz: bool = True, bits: int = 24, stem: str | None = None,
+                        verbose: bool = False) -> Replication:
     """Recorded note in, attack + untouched dctloop loop out.  See the module docstring.
 
     The loop is exactly what ``dctloop.loop_file`` would make of this file at ``seconds`` (same
@@ -367,7 +368,9 @@ def replicate_unaltered(path: str, out_dir: str | None = None, seconds: float = 
             print(f'  [{name}] assembled file peaks at {peak:.3f}: whole file scaled by {20 * math.log10(file_gain):.2f} dB')
         ext = 'flac' if format == 'flac' else 'wav'
         p_audio = os.path.join(out_dir, f'{stem}.{ext}')
-        sf.write(p_audio, out * file_gain, fs, subtype='PCM_24')
+        # bits: 16 halves the file against 24 when the source is 16-bit (SSO is), since the extra
+        # bits are incompressible noise; the loop's own noise floor is far above either
+        sf.write(p_audio, out * file_gain, fs, subtype=f'PCM_{int(bits)}')
         outputs['audio'] = p_audio
         if note_sfz:
             p_sfz = os.path.join(out_dir, f'{stem}.sfz')

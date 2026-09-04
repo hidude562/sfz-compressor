@@ -248,6 +248,7 @@ def main(argv=None):
     ap.add_argument('--limit', type=int)
     ap.add_argument('--no-sfizz', action='store_true')
     ap.add_argument('--preview', action='store_true', help='also write the A/B preview per note (large)')
+    ap.add_argument('--bits', type=int, default=16, choices=[16, 24], help='FLAC bit depth (default 16: the SSO sources are 16-bit)')
     ap.add_argument('--combine-only', action='store_true',
                     help='only (re)write the per-instrument and per-variant .sfz files from an existing output')
     a = ap.parse_args(argv)
@@ -271,7 +272,7 @@ def main(argv=None):
         out_dir = os.path.join(a.out, folder)
         try:
             r = replicate_unaltered(path, out_dir, a.loop, method='bridge', basis=a.basis, max_attack_s=a.max_attack,
-                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False)
+                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False, bits=a.bits)
             groups[(folder, variant)].append((r, dyn))
             rows.append((rel, r))
             held = 'ok' if (r.sfizz is None or r.sfizz.get('ok')) else 'sfizz hold FAIL'
