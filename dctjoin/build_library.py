@@ -35,6 +35,11 @@ from collections import defaultdict
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dctloop import note_from_name  # noqa: E402
 from dctjoin.unaltered import replicate_unaltered  # noqa: E402
+from dctjoin.decay import replicate_decaying, region_lines_decay  # noqa: E402
+
+# pitched decaying families: attack + loop of the flattened body + the decay handed to the SFZ
+# envelope (dctjoin.decay); built with --decay
+DECAY_PITCHED = {'grand piano', 'harp', 'vibraphone', 'celeste', 'marimba', 'harpsichord'}
 
 SSO = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'Samples')
 
@@ -61,8 +66,9 @@ def parse_name(stem: str) -> dict | None:
                 skip=any(t.lower() in SKIP_TOKENS for t in rest))
 
 
-def find_sustains(root: str = SSO, folders: set | None = None):
-    """(included: [(path, folder, variant, dynamic)], excluded: [(relpath, reason)])"""
+def find_sustains(root: str = SSO, folders: set | None = None, decay: bool = False):
+    """(included: [(path, folder, variant, dynamic)], excluded: [(relpath, reason)]).  With
+    ``decay`` the pitched decaying families are selected instead of the sustaining ones."""
     inc, exc = [], []
     for d in sorted(os.listdir(root)):
         full = os.path.join(root, d)
@@ -74,7 +80,11 @@ def find_sustains(root: str = SSO, folders: set | None = None):
             if not f.lower().endswith(('.wav', '.flac', '.aif', '.aiff')):
                 continue
             rel = os.path.join(d, f)
-            if d.lower() in DECAY_FAMILIES:
+            if decay:
+                if d.lower() not in DECAY_PITCHED:
+                    exc.append((rel, 'not a pitched decaying family'))
+                    continue
+            elif d.lower() in DECAY_FAMILIES:
                 exc.append((rel, 'decay family'))
                 continue
             info = parse_name(os.path.splitext(f)[0])
@@ -157,6 +167,12 @@ def region_lines(reps: list, sw_last: int | None = None) -> tuple[list[str], int
             uniq.append(r)
         lo_v, hi_v = vr.get(dyn, (1, 127))
         for r, (lo, hi) in zip(uniq, key_ranges([r.keycenter for r in uniq])):
+            env = getattr(r, 'envelope', None)
+            if env:                                   # decaying note: one region per envelope term, gains add
+                lines += region_lines_decay(os.path.basename(r.outputs['audio']), r.keycenter, -r.tune_cents, r.loop_start,
+                                            r.loop_end, r.hold_s, env, r.release_sfz, lo, hi, lo_v, hi_v, sw_last)
+                n += len(env)
+                continue
             sw = f' sw_last={sw_last}' if sw_last is not None else ''
             lines.append(f'<region> sample={os.path.basename(r.outputs["audio"])} pitch_keycenter={r.keycenter} '
                          f'lokey={lo} hikey={hi} lovel={lo_v} hivel={hi_v} tune={int(round(-r.tune_cents))} '
@@ -199,9 +215,62 @@ def write_instrument_sfz(path: str, folder: str, groups: dict) -> dict:
     return info
 
 
+def write_reports(out_dir: str) -> None:
+    """manifest.md (every source file: replicated / skipped, with the reason) and summary.md
+    (the numbers per replicated note) rebuilt from the .json files in ``out_dir`` plus the
+    selection rules, so a partial build (--folders, --decay) never loses the library-wide view."""
+    import json
+    done = {}
+    for jp in [p for f in sorted(os.listdir(out_dir)) if os.path.isdir(os.path.join(out_dir, f))
+               for p in glob_json(os.path.join(out_dir, f))]:
+        j = json.load(open(jp))
+        done[os.path.relpath(j['source'], SSO)] = j
+    inc_s, exc_s = find_sustains()
+    inc_d, exc_d = find_sustains(decay=True)
+    rows = []
+    for path, folder, variant, dyn in inc_s + inc_d:
+        rel = os.path.relpath(path, SSO)
+        if rel in done:
+            j = done[rel]
+            c = j.get('continuity', {})
+            extra = (f'env fit {j["render_env_err_db"][0]:.1f}/{j["render_env_err_db"][1]:.1f} dB' if j.get('render_env_err_db')
+                     else ('hold ok' if (j.get('sfizz') or {}).get('ok') else ''))
+            rows.append((rel, 'ok', f'{variant} {dyn or "-"} key {j["keycenter"]} attack {j["attack_s"]:.2f}s '
+                                    f'tail ncc {c.get("tail_ncc", float("nan")):.3f} {extra}'))
+        else:
+            rows.append((rel, 'not built', variant))
+    seen = {r[0] for r in rows}
+    for rel, why in exc_s:
+        if rel not in seen and why != 'decay family':
+            rows.append((rel, 'skipped', why)); seen.add(rel)
+    for rel, why in exc_d:
+        if rel not in seen and why != 'not a pitched decaying family':
+            rows.append((rel, 'skipped', why)); seen.add(rel)
+    for rel, why in exc_s:
+        if rel not in seen:
+            rows.append((rel, 'skipped', 'decaying family (unpitched or not built)')); seen.add(rel)
+    with open(os.path.join(out_dir, 'manifest.md'), 'w') as fh:
+        fh.write('| file | status | detail |\n|---|---|---|\n')
+        for row in sorted(rows):
+            fh.write('| ' + ' | '.join(row) + ' |\n')
+    with open(os.path.join(out_dir, 'summary.md'), 'w') as fh:
+        fh.write('| file | key | attack s | loop s | tail ncc | tail resid dB | harm step dB (loop own) '
+                 '| band step dB (rec) | untouched | envelope / sfizz |\n|' + '---|' * 10 + '\n')
+        for rel in sorted(done):
+            j = done[rel]; c = j.get('continuity', {})
+            s = (f'env {" + ".join(f"{a:.2f}e^(-t/{t:.2f})" for a, t in j["envelope"])}, render {j["render_env_err_db"][0]:.1f} dB'
+                 if j.get('envelope') else ('sfizz ok' if (j.get('sfizz') or {}).get('ok') else 'sfizz n/a'))
+            fh.write(f'| {rel} | {j["keycenter"]}{-j["tune_cents"]:+.0f}c | {j["attack_s"]:.3f} | {j["loop_seconds"]:.3f} | '
+                     f'{c.get("tail_ncc", float("nan")):.3f} | {c.get("tail_residual_db", float("nan")):.0f} | '
+                     f'{c.get("harm_step_db_wmean", float("nan")):.2f} ({c.get("loop_harm_step_db_wmean", 0):.2f}) | '
+                     f'{c.get("band_step_db_mean", float("nan")):.1f} ({c.get("rec_band_step_db_mean", float("nan")):.1f}) | '
+                     f'{"yes" if j["loop_untouched"] else "NO"} | {s} |\n')
+
+
 def combine(out_dir: str, remove_note_sfz: bool = True) -> list:
     """Build every <Folder>/<Folder>.sfz (and refresh the per-variant .sfz files) from the
-    per-note .json files already in ``out_dir``; optionally delete the per-note .sfz files."""
+    per-note .json files already in ``out_dir``; optionally delete the per-note .sfz files;
+    then rebuild manifest.md and summary.md from the same files."""
     import json
     from types import SimpleNamespace
     results = []
@@ -216,8 +285,10 @@ def combine(out_dir: str, remove_note_sfz: bool = True) -> list:
             if info is None:
                 continue
             rep = SimpleNamespace(keycenter=j['keycenter'], tune_cents=j['tune_cents'], loop_start=j['loop_start'],
-                                  loop_end=j['loop_end'], release_sfz=j['release_sfz'], outputs=j['outputs'])
-            groups[info['variant']].append((rep, info['dynamic']))
+                                  loop_end=j['loop_end'], release_sfz=j['release_sfz'], outputs=j['outputs'],
+                                  envelope=j.get('envelope'), hold_s=j.get('hold_s'))
+            variant = info['variant'] if info['variant'] != 'default' else folder.lower().replace(' ', '_')
+            groups[variant].append((rep, info['dynamic']))
         if not groups:
             continue
         if remove_note_sfz:
@@ -230,7 +301,13 @@ def combine(out_dir: str, remove_note_sfz: bool = True) -> list:
         for v, reps in groups.items():
             write_variant_sfz(os.path.join(fdir, f'{v}.sfz'), v, folder, reps)
         inst = write_instrument_sfz(os.path.join(fdir, f'{folder}.sfz'), folder, groups)
+        if len(groups) == 1 and list(groups)[0] == folder.lower().replace(' ', '_'):
+            try:                                          # single plain variant: the two files are identical
+                os.remove(os.path.join(fdir, f'{list(groups)[0]}.sfz'))
+            except OSError:
+                pass
         results.append((folder, inst))
+    write_reports(out_dir)
     return results
 
 
@@ -286,10 +363,7 @@ def transcode(src: str, dst: str, fmt: str = 'ogg', quality: float = 1.0) -> int
             with open(os.path.join(dst, folder, os.path.basename(jp)), 'w') as fh:
                 json.dump(j, fh, default=float)
             n += 1
-    for f in ('manifest.md', 'summary.md'):
-        if os.path.exists(os.path.join(src, f)):
-            shutil.copy(os.path.join(src, f), os.path.join(dst, f))
-    combine(dst)
+    combine(dst)                                         # .sfz files + manifest.md / summary.md from the .json files
     with open(os.path.join(dst, 'seam_check.md'), 'w') as fh:
         fh.write(f'# loop seam check: {fmt} q{quality:g} vs FLAC\n\n{n} files, {worse} flagged '
                  f'(seam flux ratio > 1.5x the FLAC one and > 2, or a changed sample count)\n\n')
@@ -320,6 +394,10 @@ def main(argv=None):
     ap.add_argument('--bits', type=int, default=16, choices=[16, 24], help='FLAC bit depth (default 16: the SSO sources are 16-bit)')
     ap.add_argument('--format', default='flac', choices=['flac', 'wav', 'ogg'], help='audio format (default flac)')
     ap.add_argument('--quality', type=float, default=1.0, help='Vorbis -q:a for --format ogg (default 1: ~105 kbps)')
+    ap.add_argument('--decay', action='store_true',
+                    help='build the pitched decaying families (grand piano, harp, ...) with dctjoin.decay instead of the sustains')
+    ap.add_argument('--hint-octave', type=int, default=0,
+                    help='the file names are this many octaves off the standard convention (SSO grand piano: 1); verified per note')
     ap.add_argument('--transcode-from', metavar='DIR',
                     help='do not render: transcode an existing FLAC library DIR into --out at --format/--quality, '
                          'rebuild its .sfz files and check every loop seam against the FLAC')
@@ -335,7 +413,7 @@ def main(argv=None):
         return 0
 
     folders = {f.strip().lower() for f in a.folders.split(',')} if a.folders else None
-    inc, exc = find_sustains(folders=folders)
+    inc, exc = find_sustains(folders=folders, decay=a.decay)
     if a.limit:
         inc = inc[:a.limit]
     print(f'{len(inc)} sustained files in {len({d for _, d, _, _ in inc})} folders; {len(exc)} skipped')
@@ -347,12 +425,18 @@ def main(argv=None):
         rel = os.path.relpath(path, SSO)
         out_dir = os.path.join(a.out, folder)
         try:
-            r = replicate_unaltered(path, out_dir, a.loop, method='bridge', basis=a.basis, max_attack_s=a.max_attack,
-                                    bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False, bits=a.bits,
-                                    format=a.format, quality=a.quality)
+            if a.decay:
+                r = replicate_decaying(path, out_dir, a.loop, basis=a.basis, max_attack_s=a.max_attack, sfizz=not a.no_sfizz,
+                                       preview=a.preview, bits=a.bits, format=a.format, quality=a.quality,
+                                       hint_mult=2.0 ** a.hint_octave)
+                held = f'env fit {r.render_env_err_db[0]:.1f}/{r.render_env_err_db[1]:.1f} dB' if r.render_env_err_db else 'no render'
+            else:
+                r = replicate_unaltered(path, out_dir, a.loop, method='bridge', basis=a.basis, max_attack_s=a.max_attack,
+                                        bridge_s=a.bridge, sfizz=not a.no_sfizz, preview=a.preview, note_sfz=False, bits=a.bits,
+                                        format=a.format, quality=a.quality)
+                held = 'ok' if (r.sfizz is None or r.sfizz.get('ok')) else 'sfizz hold FAIL'
             groups[(folder, variant)].append((r, dyn))
             rows.append((rel, r))
-            held = 'ok' if (r.sfizz is None or r.sfizz.get('ok')) else 'sfizz hold FAIL'
             manifest.append((rel, 'ok', f'{variant} {dyn or "-"} key {r.keycenter} attack {r.attack_s:.2f}s '
                                         f'tail ncc {r.continuity.get("tail_ncc", float("nan")):.3f} {held}'))
         except Exception as e:
@@ -367,24 +451,9 @@ def main(argv=None):
         p = os.path.join(a.out, folder, f'{variant}.sfz')
         write_variant_sfz(p, variant, folder, reps)
         n_sfz += 1
-    for folder, inst in combine(a.out):
+    for folder, inst in combine(a.out):          # also rewrites manifest.md / summary.md from all .json files
         n_sfz += 1
 
-    with open(os.path.join(a.out, 'manifest.md'), 'w') as fh:
-        fh.write('| file | status | detail |\n|---|---|---|\n')
-        for row in manifest:
-            fh.write('| ' + ' | '.join(row) + ' |\n')
-    with open(os.path.join(a.out, 'summary.md'), 'w') as fh:
-        fh.write('| file | key | attack s | loop s | tail ncc | tail resid dB | harm step dB (loop own) '
-                 '| band step dB (rec) | untouched | sfizz |\n|' + '---|' * 10 + '\n')
-        for rel, r in rows:
-            c = r.continuity
-            s = 'ok' if (r.sfizz and r.sfizz.get('ok')) else ('FAIL' if r.sfizz else 'n/a')
-            fh.write(f'| {rel} | {r.keycenter}{-r.tune_cents:+.0f}c | {r.attack_s:.3f} | {r.loop_seconds:.3f} | '
-                     f'{c.get("tail_ncc", float("nan")):.3f} | {c.get("tail_residual_db", float("nan")):.0f} | '
-                     f'{c["harm_step_db_wmean"]:.2f} ({c.get("loop_harm_step_db_wmean", 0):.2f}) | '
-                     f'{c["band_step_db_mean"]:.1f} ({c["rec_band_step_db_mean"]:.1f}) | '
-                     f'{"yes" if r.loop_untouched else "NO"} | {s} |\n')
     print(f'\n{len(rows)} notes replicated, {fails} failed, {n_sfz} .sfz files, {time.time() - t0:.0f}s')
     print('wrote', os.path.join(a.out, 'manifest.md'), 'and', os.path.join(a.out, 'summary.md'))
     return 0
