@@ -307,6 +307,8 @@ def loop_signal(x: np.ndarray, fs: int, seconds: float = 1.5, *, basis: str = 'd
         if fit and f0_used > 0 and not periods:
             L, K, cents = fit_loop_length(T, fs, f0_used)
             while n < 2 * L:
+                if K <= 1:                # one period already does not fit twice: nothing to loop
+                    raise ValueError(f'segment of {n / fs * 1000:.0f} ms holds fewer than two periods of {f0_used:.1f} Hz')
                 T *= 0.98
                 L, K, cents = fit_loop_length(T, fs, f0_used)
         else:

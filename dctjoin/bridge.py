@@ -421,6 +421,8 @@ def continuity_metrics(out: np.ndarray, x: np.ndarray, J: int, loop_start: int, 
 
     def harm(seg, c):
         Wn = len(seg)
+        if Wn < 2:                      # no window fits: report nothing rather than raising
+            return np.zeros(nh, dtype=complex)
         w = get_window('hann', Wn, fftbins=True)
         fc = f0s[min(c, len(f0s) - 1)]
         t = np.arange(Wn) / fs
@@ -429,7 +431,7 @@ def continuity_metrics(out: np.ndarray, x: np.ndarray, J: int, loop_start: int, 
     def steps(sig, p):
         a_steps, ph_errs = [], []
         for c in range(C):
-            before = harm(sig[p - n: p], c)
+            before = harm(sig[max(0, p - n): p], c)      # clamp: a low note's window can be longer than what precedes p
             after = harm(sig[p: p + n], c)
             fc = f0s[min(c, len(f0s) - 1)]
             adv = np.exp(2j * np.pi * np.arange(1, nh + 1) * fc * n / fs)
@@ -463,9 +465,13 @@ def continuity_metrics(out: np.ndarray, x: np.ndarray, J: int, loop_start: int, 
         if loop.ndim == 1:
             loop = loop[:, None]
         L = len(loop)
-        tiled = np.tile(loop, (3, 1))
-        a_lp, p_lp = steps(tiled, L)
-        b_lp = bands(tiled, L) if L >= int(band_ms * 1e-3 * fs) else np.zeros(1)
+        # enough copies that a full n-sample window fits on both sides of the seam being measured:
+        # with a short loop and a low fundamental, n can be several times L
+        reps = max(3, 2 * int(math.ceil(n / L)) + 1)
+        tiled = np.tile(loop, (reps, 1))
+        seam = L * (reps // 2)
+        a_lp, p_lp = steps(tiled, seam)
+        b_lp = bands(tiled, seam) if L >= int(band_ms * 1e-3 * fs) else np.zeros(1)
         res.update(loop_harm_step_db_wmean=float(np.sum(np.abs(a_lp) * wgt)), loop_harm_phase_err_deg_wmean=float(np.sum(p_lp * wgt)),
                    loop_band_step_db_mean=float(np.mean(np.abs(b_lp))),
                    excess_harm_step_db=float(res['harm_step_db_wmean'] - np.sum(np.abs(a_lp) * wgt)),

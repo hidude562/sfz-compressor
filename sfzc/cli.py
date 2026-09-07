@@ -40,7 +40,8 @@ def cmd_loop(args: argparse.Namespace) -> int:
                      stage_files=args.stage_files, method=args.method, frozen=args.frozen,
                      target_periods=args.target_periods, refine=args.refine, lfo=args.lfo,
                      loop_crossfade_s=args.loop_crossfade, round_robin=args.round_robin,
-                     loop_seconds=args.loop_seconds, dct_basis=args.basis, dct_lock=args.lock)
+                     loop_seconds=args.loop_seconds, dct_basis=args.basis, dct_lock=args.lock,
+                     tail_morph=not args.no_tail_morph)
     rows = []
     results = []
     if args.jobs > 1 and len(paths) > 1:
@@ -168,6 +169,7 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--loop-seconds", type=float, default=None, help="dctloop: target loop length in seconds")
     a.add_argument("--basis", default="dft", choices=["auto", "dct", "dft"], help="dctloop synthesis basis (dft keeps the original phases at the join)")
     a.add_argument("--lock", type=float, default=1.5, help="dctloop harmonic-lock half-width in grid bins")
+    a.add_argument("--no-tail-morph", action="store_true", help="dctloop: do not EQ-morph the recording towards the loop before the join")
     a.add_argument("--frozen", default="auto", choices=["auto", "on", "off"], help="laroche: freeze partials")
     a.add_argument("--target-periods", type=float, default=166.0, help="laroche: preferred loop length in periods")
     a.add_argument("--refine", action="store_true", help="laroche: PyTorch MR-STFT refinement of partial/noise gains")

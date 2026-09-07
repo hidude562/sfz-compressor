@@ -97,6 +97,63 @@ class DctLoopLooper(SampleLooper):
             Z[-1] = Z[-1].real
         return np.fft.irfft(Z, n=L, axis=0)
 
+    @staticmethod
+    def _smooth_log_spectrum(P: np.ndarray, fr: np.ndarray, octaves: float = 1 / 3, min_bins: int = 17) -> np.ndarray:
+        """Power spectrum smoothed to a broad spectral envelope: at least ``min_bins`` wide in Hz (so
+        the harmonic fine structure is never resolved) and a constant fraction of an octave above that."""
+        P = dsp.smooth(P, min_bins | 1)
+        lf = np.log2(np.maximum(fr, 20.0))
+        grid = np.linspace(lf[1], lf[-1], 600)
+        lp = np.interp(grid, lf, 10 * np.log10(P + 1e-20))
+        n = max(3, int(round(octaves / (grid[1] - grid[0]))) | 1)
+        lp = dsp.smooth(lp, n)
+        return 10 ** (np.interp(lf, grid, lp) / 10)
+
+    def _morph_tail(self, tail: np.ndarray, loop: np.ndarray, max_db: float = 9.0) -> np.ndarray:
+        """EQ-morph the recording's tail (M samples before the join) towards the loop's spectrum.
+
+        A per-band gain (loop LTAS over the tail's last 40 ms, 1/6-octave smoothed, power-neutral,
+        clipped to +-max_db) is applied through an STFT with a raised-cosine ramp from 0 (start of
+        the tail: untouched) to 1 (the join), per channel.  The loop is not modified.
+        """
+        sr = self.sr
+        M, C = tail.shape
+        n_fft, hop = 2048, 512
+        if M < 3 * n_fft // 2:
+            return tail
+        w = np.hanning(n_fft + 1)[:-1]
+        fr = np.fft.rfftfreq(n_fft, 1 / sr)
+        out = np.zeros_like(tail)
+        norm = np.zeros(M)
+        n_frames = 1 + (M - n_fft) // hop
+        for c in range(C):
+            # target: loop LTAS; source: the last 40 ms of the tail (a few frames), same resolution
+            lt = np.tile(loop[:, c], max(1, int(np.ceil(2 * n_fft / len(loop))) + 1))
+            starts = range(0, len(lt) - n_fft + 1, hop)
+            T = np.mean([np.abs(np.fft.rfft(lt[s: s + n_fft] * w)) ** 2 for s in starts], axis=0)
+            src_frames = [np.abs(np.fft.rfft(tail[s: s + n_fft, c] * w)) ** 2
+                          for s in range(max(0, M - n_fft - 2 * hop), M - n_fft + 1, hop)] or \
+                         [np.abs(np.fft.rfft(tail[M - n_fft:, c] * w)) ** 2]
+            S = np.mean(src_frames, axis=0)
+            Ts, Ss = self._smooth_log_spectrum(T, fr), self._smooth_log_spectrum(S, fr)
+            G = np.sqrt(Ts / (Ss + 1e-20))
+            G = np.clip(G, 10 ** (-max_db / 20), 10 ** (max_db / 20))
+            G *= np.sqrt(np.sum(S) / (np.sum(S * G ** 2) + 1e-20))   # power-neutral on the source
+            logG = np.log(G)
+            for i in range(n_frames):
+                s0 = i * hop
+                ramp = 0.5 - 0.5 * np.cos(np.pi * min(1.0, (s0 + n_fft / 2) / M))   # 0 -> 1 towards the join
+                X = np.fft.rfft(tail[s0: s0 + n_fft, c] * w)
+                y = np.fft.irfft(X * np.exp(ramp * logG), n=n_fft) * w
+                out[s0: s0 + n_fft, c] += y
+                if c == 0:
+                    norm[s0: s0 + n_fft] += w ** 2
+        good = norm > 1e-3
+        out[good] /= norm[good, None]
+        # the first/last partial frames of the OLA are not fully covered: keep the recording there
+        out[~good] = tail[~good]
+        return out
+
     def _junction_score(self, loop: np.ndarray, join: int) -> tuple[float, float, float]:
         """(score, dip_db, transient_db) of the attack -> loop junction for a candidate loop alignment.
 
@@ -185,8 +242,15 @@ class DctLoopLooper(SampleLooper):
         X = max(X, 1)
         w = dsp.raised_cosine(X)[:, None]
         pre = loop[L - X:] if X > 0 else loop[:0]
-        head = x[seg.onset: join - X]
-        xf = x[join - X: join] * (1 - w) + pre * w
+        # EQ-morph the recording's tail towards the loop's spectrum (the loop itself is untouched)
+        Mt = int(min(self.cfg.tail_morph_s * sr, 0.7 * (join - seg.onset)))
+        rec = x[seg.onset: join].copy()
+        morphed = False
+        if self.cfg.tail_morph and Mt >= int(0.08 * sr):
+            rec[-Mt:] = self._morph_tail(rec[-Mt:], loop)
+            morphed = True
+        head = rec[: len(rec) - X]
+        xf = rec[len(rec) - X:] * (1 - w) + pre * w
         out = np.concatenate([head, xf, loop], axis=0)
         nf = min(len(out), int(0.002 * sr))
         if nf > 1:
@@ -242,7 +306,8 @@ class DctLoopLooper(SampleLooper):
                     f"({cents:+.1f} cents from key {key}) pitch={info.get('pitch', {}).get('method', '?')}\n")
             f.write(f"// loop {loop_start}..{loop_end} ({L} samples = {L/sr*1000:.1f} ms, K={info.get('K')} periods, "
                     f"grid {info.get('grid_cents', 0):+.2f} c, frames={info.get('frames')}, lock={info.get('lock_width')}, "
-                    f"rotation={tau} samples, join gain={20*np.log10(g):+.1f} dB)\n")
+                    f"rotation={tau} samples, join gain={20*np.log10(g):+.1f} dB, "
+                    f"tail morph={'%.0f ms' % (Mt / sr * 1000) if morphed else 'off'})\n")
             if met:
                 f.write(f"// dctloop metrics: seam x{met.get('seam_flux_ratio', 0):.2f} p95 x{met.get('p95_flux_ratio', 0):.2f} "
                         f"ltas {met.get('ltas_mean_abs_db', 0):.2f}/{met.get('ltas_max_abs_db', 0):.2f} dB "

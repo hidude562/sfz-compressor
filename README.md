@@ -37,6 +37,13 @@ demo and report) is shared.
   the loop the original's phase at every grid bin measured at the join (so inharmonic
   partials are coherent too) or by rotating it, whichever gives the smaller cancellation
   dip in the cross-fade and the smaller transient at the join - level-matches it there (per-channel RMS over a 20–50 ms window at the join, so a decaying note does not step down when the loop takes over), and writes one file: recorded attack → 10 ms cross-fade → loop. Envelopes are non-negative constant/exponential regions of that file (up to three exponentials for decaying notes, so both the fast initial decay and the long tail are followed; a swell after the join is not reproduced, the loop holds the join level).
+  **Tail morph** (`--no-tail-morph` to disable): the loop itself is never altered in
+  spectrum; instead the last ~200 ms of the recording before the join are EQ-morphed
+  towards the loop's long-term spectrum with a broad (≥ 17 bins and 1/3 octave), level-neutral
+  per-band gain (≤ ±9 dB) that ramps from 0 at the start of the tail to full at the join, so
+  the cross-fade blends two signals that already share a timbre. Measured as the timbre step
+  across the join in excess of the recording's own step: bassoon 4.1 → 0.8 dB, clarinet
+  3.8 → 1.0 dB, trumpet 2.7 → 0.8 dB.
   Decaying notes are handled specially: dctloop analyses only 2–3 loop lengths right after
   the join, level-detrended, so the loop carries the join's timbre rather than the average
   of the whole decay; a `fileg` low-pass envelope is fitted when the original darkens

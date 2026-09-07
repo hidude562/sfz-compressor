@@ -4,4 +4,11 @@ demo_out*/
 *.ogg
 .pytest_cache/
 dctloop_out*/
-/out/
+
+# build outputs and logs
+dctjoin_library*/
+dctjoin_out*/
+demo_out*/
+sfz_out/
+*.log
+__pycache__/

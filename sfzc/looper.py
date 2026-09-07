@@ -52,6 +52,8 @@ class LoopConfig:
     dct_basis: str = "dft"            # dctloop: 'dft' keeps the original's phases so the loop lines up with the
                                       # recorded attack at the join; 'dct' (palindrome) or 'auto' (both, by Metric B)
     dct_lock: float = 1.5             # dctloop: harmonic-lock half-width in grid bins (0 disables)
+    tail_morph: bool = True           # dctloop: EQ-morph the recording's last ~200 ms towards the loop's spectrum
+    tail_morph_s: float = 0.2
     frozen: str = "auto"              # laroche: 'auto' (frozen unless vibrato/tremolo), 'on', 'off'
     target_periods: float = 166.0     # laroche: preferred loop length in fundamental periods (Laroche's 0.5/0.003)
     refine: bool = False              # laroche: Stage-3 MR-STFT refinement of partial / noise-band gains (PyTorch)

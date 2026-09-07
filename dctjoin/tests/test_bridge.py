@@ -126,3 +126,21 @@ def test_attack_budget_is_honoured_and_the_join_stays_continuous():
         # a budget tighter than the transient + minimum bridge still works (bridge overlaps the transient tail)
         tiny = replicate_unaltered(src, None, 0.5, max_attack_s=0.15, search_s=1.5, sfizz=False, preview=False)
         assert tiny.attack_s <= 0.15 + 1e-6 and tiny.loop_untouched and tiny.continuity['tail_ncc'] > 0.98
+
+
+def test_continuity_metrics_with_a_loop_shorter_than_the_analysis_window():
+    """A low note with a short loop: the 8-period window is longer than the loop itself, which used
+    to index past the start of the tiled loop and hand an empty slice to get_window (ValueError),
+    throwing away a perfectly good replication."""
+    import numpy as np
+    from dctjoin.bridge import continuity_metrics
+    fs, f0 = 44100, 32.7                      # C1: one period is 1349 samples
+    L = int(0.2 * fs)                         # a 0.2 s loop holds under 5 periods; 8 periods do not fit
+    t = np.arange(L) / fs
+    loop = (0.3 * np.sin(2 * np.pi * f0 * t) + 0.1 * np.sin(4 * np.pi * f0 * t))[:, None]
+    x = np.tile(loop, (6, 1))
+    out = np.tile(loop, (4, 1))
+    res = continuity_metrics(out, x, L, L, fs, [f0], loop=loop)
+    assert np.isfinite(res['harm_step_db_max'])
+    assert np.isfinite(res['loop_harm_step_db_wmean'])
+    assert abs(res['loop_harm_step_db_wmean']) < 1.0        # a tiled loop is continuous with itself

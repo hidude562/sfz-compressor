@@ -136,13 +136,19 @@ def pad_after_loop(audio: np.ndarray, loop_start: int, loop_end: int, fs: int, s
     return np.concatenate([audio[: loop_end + 1], pad], axis=0)
 
 
-def encode_ogg(src_wav_or_flac: str, dst_ogg: str, quality: float = 1.0) -> None:
+def encode_ogg(src_wav_or_flac: str, dst_ogg: str, quality: float = 1.0, page_s: float | None = None) -> None:
     """Vorbis via ffmpeg/libvorbis at -q:a ``quality`` (measured on this library: q1 ~105 kbps,
     24 dB SNR; q8 ~37 dB).  Vorbis is gapless, so the loop points stay valid.  Pad the audio
-    with ``pad_after_loop`` first so the seam is not the codec's file boundary."""
+    with ``pad_after_loop`` first so the seam is not the codec's file boundary.
+
+    ``page_s`` sets the Ogg page duration (ffmpeg's default is 1 s).  A file whose notes are fetched
+    one at a time by byte range (kobi.slices) wants short pages: 0.1 s costs about 2.4% in page
+    headers and cuts the bytes fetched per note by two thirds."""
     import subprocess
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src_wav_or_flac, '-c:a', 'libvorbis', '-q:a', str(quality), dst_ogg],
-                   check=True)
+    cmd = ['ffmpeg', '-v', 'error', '-y', '-i', src_wav_or_flac, '-c:a', 'libvorbis', '-q:a', str(quality)]
+    if page_s:
+        cmd += ['-page_duration', str(int(round(page_s * 1e6)))]
+    subprocess.run(cmd + [dst_ogg], check=True)
 
 
 def release_time(x: np.ndarray, fs: int, release_onset: int, end: int) -> tuple[float, float]:

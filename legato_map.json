@@ -1,0 +1,5010 @@
+{
+ "Bass Trombone Solo Legato": {
+  "sfz": "Brass - Performance/Bass Trombone Solo Legato.sfz",
+  "n": 14,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Bass",
+    "lokey": "e1",
+    "hikey": "f1",
+    "keycenter": "e1",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "f#1",
+    "hikey": "g#1",
+    "keycenter": "g1",
+    "volume": "-1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "a1",
+    "hikey": "b1",
+    "keycenter": "a#1",
+    "volume": "2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "c2",
+    "hikey": "d2",
+    "keycenter": "c#2",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "d#2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": "2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "f#4",
+    "hikey": "g4",
+    "keycenter": "g4",
+    "volume": "-3",
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Horn Solo Legato": {
+  "sfz": "Brass - Performance/Horn Solo Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Horn/horn-e2.wav",
+    "lokey": "e2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": null,
+    "tune": "30",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-g2.wav",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": "-1",
+    "tune": "-11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-a#2.wav",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-c#3.wav",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-e3.wav",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "-10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "23",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horn/horn-e5.wav",
+    "lokey": "d#5",
+    "hikey": "e5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Horns Legato": {
+  "sfz": "Brass - Performance/Horns Legato.sfz",
+  "n": 26,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Horns/horns-sus-mp-e2-PB-loop.wav",
+    "lokey": "40",
+    "hikey": "41",
+    "keycenter": "40",
+    "volume": "-17",
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-g2-PB-loop.wav",
+    "lokey": "42",
+    "hikey": "44",
+    "keycenter": "43",
+    "volume": "-18",
+    "tune": "2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-a#2-PB-loop.wav",
+    "lokey": "45",
+    "hikey": "47",
+    "keycenter": "46",
+    "volume": "-15",
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-c#3-PB-loop.wav",
+    "lokey": "48",
+    "hikey": "50",
+    "keycenter": "49",
+    "volume": "-14",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-e3-PB-loop.wav",
+    "lokey": "51",
+    "hikey": "53",
+    "keycenter": "52",
+    "volume": "-18",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-g3-PB-loop.wav",
+    "lokey": "54",
+    "hikey": "56",
+    "keycenter": "55",
+    "volume": "-18",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-a#3-PB-loop.wav",
+    "lokey": "57",
+    "hikey": "59",
+    "keycenter": "58",
+    "volume": "-17",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-c#4-PB-loop.wav",
+    "lokey": "60",
+    "hikey": "62",
+    "keycenter": "61",
+    "volume": "-15",
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-e4-PB-loop.wav",
+    "lokey": "63",
+    "hikey": "65",
+    "keycenter": "64",
+    "volume": "-18",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-g4-PB-loop.wav",
+    "lokey": "66",
+    "hikey": "68",
+    "keycenter": "67",
+    "volume": "-17",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-a#4-PB-loop.wav",
+    "lokey": "69",
+    "hikey": "71",
+    "keycenter": "70",
+    "volume": "-15",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-c#5-PB-loop.wav",
+    "lokey": "72",
+    "hikey": "74",
+    "keycenter": "73",
+    "volume": "-16",
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-mp-e5-PB-loop.wav",
+    "lokey": "75",
+    "hikey": "77",
+    "keycenter": "76",
+    "volume": "-17",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-e2-PB-loop.wav",
+    "lokey": "40",
+    "hikey": "41",
+    "keycenter": "40",
+    "volume": "-16",
+    "tune": "15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-g2-PB-loop.wav",
+    "lokey": "42",
+    "hikey": "44",
+    "keycenter": "43",
+    "volume": "-19",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-a#2-PB-loop.wav",
+    "lokey": "45",
+    "hikey": "47",
+    "keycenter": "46",
+    "volume": "-18",
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-c#3-PB-loop.wav",
+    "lokey": "48",
+    "hikey": "50",
+    "keycenter": "49",
+    "volume": "-20",
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-e3-PB-loop.wav",
+    "lokey": "51",
+    "hikey": "53",
+    "keycenter": "52",
+    "volume": "-21",
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-g3-PB-loop.wav",
+    "lokey": "54",
+    "hikey": "56",
+    "keycenter": "55",
+    "volume": "-16",
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-a#3-PB-loop.wav",
+    "lokey": "57",
+    "hikey": "59",
+    "keycenter": "58",
+    "volume": "-18",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-c#4-PB-loop.wav",
+    "lokey": "60",
+    "hikey": "62",
+    "keycenter": "61",
+    "volume": "-20",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-e4-PB-loop.wav",
+    "lokey": "63",
+    "hikey": "65",
+    "keycenter": "64",
+    "volume": "-18",
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-g4-PB-loop.wav",
+    "lokey": "66",
+    "hikey": "68",
+    "keycenter": "67",
+    "volume": "-19",
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-a#4-PB-loop.wav",
+    "lokey": "69",
+    "hikey": "71",
+    "keycenter": "70",
+    "volume": "-18",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-c#5-PB-loop.wav",
+    "lokey": "72",
+    "hikey": "74",
+    "keycenter": "73",
+    "volume": "-18",
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Horns/horns-sus-ff-e5-PB-loop.wav",
+    "lokey": "75",
+    "hikey": "77",
+    "keycenter": "76",
+    "volume": "-17",
+    "tune": "2",
+    "exists": true
+   }
+  ]
+ },
+ "Tenor Trombone Solo Legato": {
+  "sfz": "Brass - Performance/Tenor Trombone Solo Legato.sfz",
+  "n": 11,
+  "missing": 11,
+  "samples": [
+   {
+    "src": "Samples/Tenor",
+    "lokey": "e2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": "-2",
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": "-1",
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Tenor",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": "7",
+    "exists": false
+   }
+  ]
+ },
+ "Trombones Legato": {
+  "sfz": "Brass - Performance/Trombones Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Trombones/trombones-sus-e2.wav",
+    "lokey": "e2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": "-11",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-g2.wav",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": "-11",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-a#2.wav",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-c#3.wav",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-e3.wav",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": "-11",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": "-9",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "-9",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": "-12",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trombones/trombones-sus-e5.wav",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Trumpet Solo Legato": {
+  "sfz": "Brass - Performance/Trumpet Solo Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Trumpet/trumpet-e3.wav",
+    "lokey": "e3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": "8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": "-3",
+    "tune": "12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "-1",
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-e5.wav",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "-10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-g5.wav",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": "-3",
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-a#5.wav",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-c#6.wav",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": "2",
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpet/trumpet-e6.wav",
+    "lokey": "d#6",
+    "hikey": "e6",
+    "keycenter": "e6",
+    "volume": "1",
+    "tune": "-9",
+    "exists": true
+   }
+  ]
+ },
+ "Trumpets Legato": {
+  "sfz": "Brass - Performance/Trumpets Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Trumpets/trumpets-sus-e3.wav",
+    "lokey": "e3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": "10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-e5.wav",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-g5.wav",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-a#5.wav",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-c#6.wav",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Trumpets/trumpets-sus-e6.wav",
+    "lokey": "d#6",
+    "hikey": "e6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Tuba Legato": {
+  "sfz": "Brass - Performance/Tuba Legato.sfz",
+  "n": 12,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Tuba/tuba-sus-e1.wav",
+    "lokey": "e1",
+    "hikey": "f1",
+    "keycenter": "e1",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-g1.wav",
+    "lokey": "f#1",
+    "hikey": "g#1",
+    "keycenter": "g1",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-a#1.wav",
+    "lokey": "a1",
+    "hikey": "b1",
+    "keycenter": "a#1",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-c#2.wav",
+    "lokey": "c2",
+    "hikey": "d2",
+    "keycenter": "c#2",
+    "volume": "-18",
+    "tune": "-14",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-e2.wav",
+    "lokey": "d#2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": "-21",
+    "tune": "-17",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-g2.wav",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-a#2.wav",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": "-17",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-c#3.wav",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": "10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-e3.wav",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": "-21",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Tuba/tuba-sus-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "1st Violins Legato": {
+  "sfz": "Strings - Performance/1st Violins Legato.sfz",
+  "n": 14,
+  "missing": 14,
+  "samples": [
+   {
+    "src": "Samples/1st",
+    "lokey": "g3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "10",
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/1st",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   }
+  ]
+ },
+ "2nd Violins Legato": {
+  "sfz": "Strings - Performance/2nd Violins Legato.sfz",
+  "n": 14,
+  "missing": 14,
+  "samples": [
+   {
+    "src": "Samples/2nd",
+    "lokey": "g3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/2nd",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   }
+  ]
+ },
+ "Bass Solo Legato": {
+  "sfz": "Strings - Performance/Bass Solo Legato.sfz",
+  "n": 15,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Bass/bass-sus-c1.flac",
+    "lokey": "c1",
+    "hikey": "c#1",
+    "keycenter": "c1",
+    "volume": "-1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-d#1.flac",
+    "lokey": "d1",
+    "hikey": "e1",
+    "keycenter": "d#1",
+    "volume": null,
+    "tune": "26",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-f#1.flac",
+    "lokey": "f1",
+    "hikey": "g1",
+    "keycenter": "f#1",
+    "volume": "2",
+    "tune": "13",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-a1.flac",
+    "lokey": "g#1",
+    "hikey": "a#1",
+    "keycenter": "a1",
+    "volume": "1",
+    "tune": "-11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-c2.flac",
+    "lokey": "b1",
+    "hikey": "c#2",
+    "keycenter": "c2",
+    "volume": "5",
+    "tune": "34",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-d#2.flac",
+    "lokey": "d2",
+    "hikey": "e2",
+    "keycenter": "d#2",
+    "volume": "1",
+    "tune": "9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-f#2.flac",
+    "lokey": "f2",
+    "hikey": "g2",
+    "keycenter": "f#2",
+    "volume": "1",
+    "tune": "29",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-a2.flac",
+    "lokey": "g#2",
+    "hikey": "a#2",
+    "keycenter": "a2",
+    "volume": "-5",
+    "tune": "33",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-c3.flac",
+    "lokey": "b2",
+    "hikey": "c#3",
+    "keycenter": "c3",
+    "volume": "1",
+    "tune": "27",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-d#3.flac",
+    "lokey": "d3",
+    "hikey": "e3",
+    "keycenter": "d#3",
+    "volume": null,
+    "tune": "18",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-f#3.flac",
+    "lokey": "f3",
+    "hikey": "g3",
+    "keycenter": "f#3",
+    "volume": "1",
+    "tune": "2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-a3.flac",
+    "lokey": "g#3",
+    "hikey": "a#3",
+    "keycenter": "a3",
+    "volume": "-2",
+    "tune": "48",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-c4.flac",
+    "lokey": "b3",
+    "hikey": "c#4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": "55",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-d#4.flac",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": "29",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass/bass-sus-f#4.flac",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": "26",
+    "exists": true
+   }
+  ]
+ },
+ "Basses Legato": {
+  "sfz": "Strings - Performance/Basses Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Basses/basses-sus-c1.wav",
+    "lokey": "c1",
+    "hikey": "c#1",
+    "keycenter": "c1",
+    "volume": null,
+    "tune": "6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-d#1.wav",
+    "lokey": "d1",
+    "hikey": "e1",
+    "keycenter": "d#1",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-f#1.wav",
+    "lokey": "f1",
+    "hikey": "g1",
+    "keycenter": "f#1",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-a1.wav",
+    "lokey": "g#1",
+    "hikey": "a#1",
+    "keycenter": "a1",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-c2.wav",
+    "lokey": "b1",
+    "hikey": "c#2",
+    "keycenter": "c2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-d#2.wav",
+    "lokey": "d2",
+    "hikey": "e2",
+    "keycenter": "d#2",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-f#2.wav",
+    "lokey": "f2",
+    "hikey": "g2",
+    "keycenter": "f#2",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-a2.wav",
+    "lokey": "g#2",
+    "hikey": "a#2",
+    "keycenter": "a2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-c3.flac",
+    "lokey": "b2",
+    "hikey": "c#3",
+    "keycenter": "c3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-d#3.wav",
+    "lokey": "d3",
+    "hikey": "e3",
+    "keycenter": "d#3",
+    "volume": "-1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-f#3.wav",
+    "lokey": "f3",
+    "hikey": "g3",
+    "keycenter": "f#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-a3.wav",
+    "lokey": "g#3",
+    "hikey": "a#3",
+    "keycenter": "a3",
+    "volume": "-3",
+    "tune": "4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Basses/basses-sus-c4.wav",
+    "lokey": "b3",
+    "hikey": "c4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Celli Legato": {
+  "sfz": "Strings - Performance/Celli Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Celli/celli-sus-c2.flac",
+    "lokey": "c2",
+    "hikey": "c#2",
+    "keycenter": "c2",
+    "volume": "-3",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-d#2.wav",
+    "lokey": "d2",
+    "hikey": "e2",
+    "keycenter": "d#2",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-f#2.wav",
+    "lokey": "f2",
+    "hikey": "g2",
+    "keycenter": "f#2",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-a2.wav",
+    "lokey": "g#2",
+    "hikey": "a#2",
+    "keycenter": "a2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-c3.wav",
+    "lokey": "b2",
+    "hikey": "c#3",
+    "keycenter": "c3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-d#3.wav",
+    "lokey": "d3",
+    "hikey": "e3",
+    "keycenter": "d#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-f#3.wav",
+    "lokey": "f3",
+    "hikey": "g3",
+    "keycenter": "f#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-a3.wav",
+    "lokey": "g#3",
+    "hikey": "a#3",
+    "keycenter": "a3",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-c4.wav",
+    "lokey": "b3",
+    "hikey": "c#4",
+    "keycenter": null,
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-d#4.wav",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-f#4.wav",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-a4.wav",
+    "lokey": "g#4",
+    "hikey": "a#4",
+    "keycenter": "a4",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Celli/celli-sus-c5.wav",
+    "lokey": "b4",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Cello Solo Legato": {
+  "sfz": "Strings - Performance/Cello Solo Legato.sfz",
+  "n": 16,
+  "missing": 2,
+  "samples": [
+   {
+    "src": "Samples/Cello/cello-c2.flac",
+    "lokey": "c2",
+    "hikey": "c#2",
+    "keycenter": "c2",
+    "volume": "-2",
+    "tune": "-2",
+    "exists": false
+   },
+   {
+    "src": "Samples/Cello/cello-d#2.wav",
+    "lokey": "d2",
+    "hikey": "e2",
+    "keycenter": "d#2",
+    "volume": "-3",
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-f#2.wav",
+    "lokey": "f2",
+    "hikey": "g2",
+    "keycenter": "f#2",
+    "volume": "1",
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-a2.wav",
+    "lokey": "g#2",
+    "hikey": "a#2",
+    "keycenter": "a2",
+    "volume": "1",
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-c3.wav",
+    "lokey": "b2",
+    "hikey": "c#3",
+    "keycenter": "c3",
+    "volume": "2",
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-d#3.wav",
+    "lokey": "d3",
+    "hikey": "e3",
+    "keycenter": "d#3",
+    "volume": null,
+    "tune": "13",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-f#3.wav",
+    "lokey": "f3",
+    "hikey": "g3",
+    "keycenter": "f#3",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-a3.wav",
+    "lokey": "g#3",
+    "hikey": "a#3",
+    "keycenter": "a3",
+    "volume": "-3",
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-c4.wav",
+    "lokey": "b3",
+    "hikey": "c#4",
+    "keycenter": "c4",
+    "volume": "-2",
+    "tune": "-10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-d#4.wav",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": "3",
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-f#4.wav",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": "-1",
+    "tune": "-22",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-a4.flac",
+    "lokey": "g#4",
+    "hikey": "a#4",
+    "keycenter": "a4",
+    "volume": "-4",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-c5.flac",
+    "lokey": "b4",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-d#5.wav",
+    "lokey": "d5",
+    "hikey": "e5",
+    "keycenter": "d#5",
+    "volume": "-2",
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Cello/cello-f#5.wav",
+    "lokey": "f5",
+    "hikey": "g5",
+    "keycenter": "f#5",
+    "volume": "2",
+    "tune": "-16",
+    "exists": false
+   },
+   {
+    "src": "Samples/Cello/cello-a5.flac",
+    "lokey": "g#5",
+    "hikey": "c6",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": "-21",
+    "exists": true
+   }
+  ]
+ },
+ "Viola Solo Legato": {
+  "sfz": "Strings - Performance/Viola Solo Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Viola/viola-sus-c3.flac",
+    "lokey": "c3",
+    "hikey": "c#3",
+    "keycenter": "c3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-d#3.flac",
+    "lokey": "d3",
+    "hikey": "e3",
+    "keycenter": "d#3",
+    "volume": null,
+    "tune": "11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-f#3.flac",
+    "lokey": "f3",
+    "hikey": "g3",
+    "keycenter": "f#3",
+    "volume": null,
+    "tune": "11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-a3.flac",
+    "lokey": "g#3",
+    "hikey": "a#3",
+    "keycenter": "a3",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-c4.flac",
+    "lokey": "b3",
+    "hikey": "c#4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-d#4.flac",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-f#4.flac",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-a4.flac",
+    "lokey": "g#4",
+    "hikey": "a#4",
+    "keycenter": "a4",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-c5.flac",
+    "lokey": "b4",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-d#5.flac",
+    "lokey": "d5",
+    "hikey": "e5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": "23",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-f#5.flac",
+    "lokey": "f5",
+    "hikey": "g5",
+    "keycenter": "f#5",
+    "volume": null,
+    "tune": "20",
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-a5.flac",
+    "lokey": "g#5",
+    "hikey": "b5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Viola/viola-sus-c6.flac",
+    "lokey": "c6",
+    "hikey": "e6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": "9",
+    "exists": true
+   }
+  ]
+ },
+ "Violas Legato": {
+  "sfz": "Strings - Performance/Violas Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Violas/violas-sus-c3.wav",
+    "lokey": "c3",
+    "hikey": "c#3",
+    "keycenter": "c3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-d#3.wav",
+    "lokey": "d3",
+    "hikey": "e3",
+    "keycenter": "d#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-f#3.wav",
+    "lokey": "f3",
+    "hikey": "g3",
+    "keycenter": "f#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-a3.wav",
+    "lokey": "g#3",
+    "hikey": "a#3",
+    "keycenter": "a3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-c4.wav",
+    "lokey": "b3",
+    "hikey": "c#4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-d#4.wav",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-f#4.wav",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-a4.wav",
+    "lokey": "g#4",
+    "hikey": "a#4",
+    "keycenter": "a4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-c5.wav",
+    "lokey": "b4",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-d#5.wav",
+    "lokey": "d5",
+    "hikey": "e5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-f#5.wav",
+    "lokey": "f5",
+    "hikey": "g5",
+    "keycenter": "f#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-a5.wav",
+    "lokey": "g#5",
+    "hikey": "a#5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violas/violas-sus-c6.wav",
+    "lokey": "b5",
+    "hikey": "c6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Violin Solo 1 Legato": {
+  "sfz": "Strings - Performance/Violin Solo 1 Legato.sfz",
+  "n": 14,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Violin/violin-g3.wav",
+    "lokey": "g3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": "-29",
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-a#4.flac",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "-29",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-e5.wav",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-g5.wav",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-a#5.wav",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-c#6.wav",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": "-28",
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-e6.wav",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-g6.wav",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": "-40",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin/violin-a#6.wav",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": "-42",
+    "exists": true
+   }
+  ]
+ },
+ "Violin Solo 2 Legato Non-Vibrato": {
+  "sfz": "Strings - Performance/Violin Solo 2 Legato Non-Vibrato.sfz",
+  "n": 41,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Violin",
+    "lokey": "g3",
+    "hikey": "g3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": "2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#3",
+    "hikey": "g#3",
+    "keycenter": "g#3",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a3",
+    "hikey": "a3",
+    "keycenter": "a3",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#3",
+    "hikey": "a#3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "0",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b3",
+    "hikey": "b3",
+    "keycenter": "b3",
+    "volume": null,
+    "tune": "7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c4",
+    "hikey": "c4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c#4",
+    "hikey": "c#4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "-12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d4",
+    "hikey": "d4",
+    "keycenter": "d4",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d#4",
+    "hikey": "d#4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "e4",
+    "hikey": "e4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f4",
+    "hikey": "f4",
+    "keycenter": "f4",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f#4",
+    "hikey": "f#4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g4",
+    "hikey": "g4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "0",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#4",
+    "hikey": "g#4",
+    "keycenter": "g#4",
+    "volume": null,
+    "tune": "-10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a4",
+    "hikey": "a4",
+    "keycenter": "a4",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#4",
+    "hikey": "a#4",
+    "keycenter": "a#4",
+    "volume": "-31",
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b4",
+    "hikey": "b4",
+    "keycenter": "b4",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c5",
+    "hikey": "c5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c#5",
+    "hikey": "c#5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "-12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d5",
+    "hikey": "d5",
+    "keycenter": "d5",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d#5",
+    "hikey": "d#5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "e5",
+    "hikey": "e5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f5",
+    "hikey": "f5",
+    "keycenter": "f5",
+    "volume": null,
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f#5",
+    "hikey": "f#5",
+    "keycenter": "f#5",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g5",
+    "hikey": "g5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#5",
+    "hikey": "g#5",
+    "keycenter": "g#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a5",
+    "hikey": "a5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#5",
+    "hikey": "a#5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": "-12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b5",
+    "hikey": "b5",
+    "keycenter": "b5",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c6",
+    "hikey": "c6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c#6",
+    "hikey": "c#6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d6",
+    "hikey": "d6",
+    "keycenter": "d6",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d#6",
+    "hikey": "d#6",
+    "keycenter": "d#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "e6",
+    "hikey": "e6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f6",
+    "hikey": "f6",
+    "keycenter": "f6",
+    "volume": null,
+    "tune": "-25",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f#6",
+    "hikey": "f#6",
+    "keycenter": "f#6",
+    "volume": null,
+    "tune": "-15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g6",
+    "hikey": "g6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": "-17",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#6",
+    "hikey": "g#6",
+    "keycenter": "g#6",
+    "volume": null,
+    "tune": "-31",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a6",
+    "hikey": "a6",
+    "keycenter": "a6",
+    "volume": null,
+    "tune": "-15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#6",
+    "hikey": "a#6",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": "-56",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b6",
+    "hikey": "c7",
+    "keycenter": "b6",
+    "volume": null,
+    "tune": "-32",
+    "exists": true
+   }
+  ]
+ },
+ "Violin Solo 2 Legato": {
+  "sfz": "Strings - Performance/Violin Solo 2 Legato.sfz",
+  "n": 41,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Violin",
+    "lokey": "g3",
+    "hikey": "g3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": "2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#3",
+    "hikey": "g#3",
+    "keycenter": "g#3",
+    "volume": null,
+    "tune": "4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a3",
+    "hikey": "a3",
+    "keycenter": "a3",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#3",
+    "hikey": "a#3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b3",
+    "hikey": "b3",
+    "keycenter": "b3",
+    "volume": null,
+    "tune": "10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c4",
+    "hikey": "c4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c#4",
+    "hikey": "c#4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d4",
+    "hikey": "d4",
+    "keycenter": "d4",
+    "volume": null,
+    "tune": "4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d#4",
+    "hikey": "d#4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": "14",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "e4",
+    "hikey": "e4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f4",
+    "hikey": "f4",
+    "keycenter": "f4",
+    "volume": null,
+    "tune": "9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f#4",
+    "hikey": "f#4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": "8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g4",
+    "hikey": "g4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#4",
+    "hikey": "g#4",
+    "keycenter": "g#4",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a4",
+    "hikey": "a4",
+    "keycenter": "a4",
+    "volume": null,
+    "tune": "-10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#4",
+    "hikey": "a#4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": "0",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b4",
+    "hikey": "b4",
+    "keycenter": "b4",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c5",
+    "hikey": "c5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": "2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c#5",
+    "hikey": "c#5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d5",
+    "hikey": "d5",
+    "keycenter": "d5",
+    "volume": null,
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d#5",
+    "hikey": "d#5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "e5",
+    "hikey": "e5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f5",
+    "hikey": "f5",
+    "keycenter": "f5",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f#5",
+    "hikey": "f#5",
+    "keycenter": "f#5",
+    "volume": null,
+    "tune": "-15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g5",
+    "hikey": "g5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#5",
+    "hikey": "g#5",
+    "keycenter": "g#5",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a5",
+    "hikey": "a5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": "-13",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#5",
+    "hikey": "a#5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": "-17",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b5",
+    "hikey": "b5",
+    "keycenter": "b5",
+    "volume": null,
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c6",
+    "hikey": "c6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "c#6",
+    "hikey": "c#6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d6",
+    "hikey": "d6",
+    "keycenter": "d6",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "d#6",
+    "hikey": "d#6",
+    "keycenter": "d#6",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "e6",
+    "hikey": "e6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f6",
+    "hikey": "f6",
+    "keycenter": "f6",
+    "volume": null,
+    "tune": "-12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "f#6",
+    "hikey": "f#6",
+    "keycenter": "f#6",
+    "volume": null,
+    "tune": "-32",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g6",
+    "hikey": "g6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": "-30",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "g#6",
+    "hikey": "g#6",
+    "keycenter": "g#6",
+    "volume": null,
+    "tune": "-21",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a6",
+    "hikey": "a6",
+    "keycenter": "a6",
+    "volume": null,
+    "tune": "-24",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "a#6",
+    "hikey": "a#6",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": "-32",
+    "exists": true
+   },
+   {
+    "src": "Samples/Violin",
+    "lokey": "b6",
+    "hikey": "c7",
+    "keycenter": "b6",
+    "volume": null,
+    "tune": "-39",
+    "exists": true
+   }
+  ]
+ },
+ "Alto Flute Solo Legato": {
+  "sfz": "Woodwinds - Performance/Alto Flute Solo Legato.sfz",
+  "n": 13,
+  "missing": 13,
+  "samples": [
+   {
+    "src": "Samples/Alto",
+    "lokey": "g3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "8",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": "2",
+    "tune": "11",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": "-1",
+    "tune": "-13",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-22",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "1",
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "-6",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "-23",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-32",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": "1",
+    "tune": "-30",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": "2",
+    "tune": "-28",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": "-26",
+    "exists": false
+   },
+   {
+    "src": "Samples/Alto",
+    "lokey": "f#6",
+    "hikey": "g6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": "-58",
+    "exists": false
+   }
+  ]
+ },
+ "Bass Clarinet Solo Legato": {
+  "sfz": "Woodwinds - Performance/Bass Clarinet Solo Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Bass",
+    "lokey": "d2",
+    "hikey": "d#2",
+    "keycenter": "d2",
+    "volume": null,
+    "tune": "25",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "e2",
+    "hikey": "f#2",
+    "keycenter": "f2",
+    "volume": null,
+    "tune": "6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "g2",
+    "hikey": "a2",
+    "keycenter": "g#2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "a#2",
+    "hikey": "c3",
+    "keycenter": "b2",
+    "volume": null,
+    "tune": "10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "c#3",
+    "hikey": "d#3",
+    "keycenter": "d3",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "e3",
+    "hikey": "f#3",
+    "keycenter": "f3",
+    "volume": null,
+    "tune": "8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "g3",
+    "hikey": "a3",
+    "keycenter": "g#3",
+    "volume": null,
+    "tune": "23",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "a#3",
+    "hikey": "c4",
+    "keycenter": "b3",
+    "volume": "2",
+    "tune": "7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "c#4",
+    "hikey": "d#4",
+    "keycenter": "d4",
+    "volume": "2",
+    "tune": "4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "e4",
+    "hikey": "f#4",
+    "keycenter": "f4",
+    "volume": "2",
+    "tune": "15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "g4",
+    "hikey": "a4",
+    "keycenter": "g#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "a#4",
+    "hikey": "c5",
+    "keycenter": "b4",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bass",
+    "lokey": "c#5",
+    "hikey": "d5",
+    "keycenter": "d5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Bassoon Solo Legato": {
+  "sfz": "Woodwinds - Performance/Bassoon Solo Legato.sfz",
+  "n": 14,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Bassoon/bassoon-a#1.wav",
+    "lokey": "a#1",
+    "hikey": "b1",
+    "keycenter": "a#1",
+    "volume": null,
+    "tune": "-13",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-c#2.wav",
+    "lokey": "c2",
+    "hikey": "d2",
+    "keycenter": "c#2",
+    "volume": null,
+    "tune": "-17",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-e2.wav",
+    "lokey": "d#2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": null,
+    "tune": "-12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-g2.wav",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-a#2.wav",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-c#3.wav",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": "-12",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-e3.wav",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": "-11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-13",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoon/bassoon-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "-10",
+    "exists": true
+   }
+  ]
+ },
+ "Bassoons Legato": {
+  "sfz": "Woodwinds - Performance/Bassoons Legato.sfz",
+  "n": 15,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Bassoons/bassoons-sus-a#1.wav",
+    "lokey": "a#1",
+    "hikey": "b1",
+    "keycenter": "b1",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-c#2.wav",
+    "lokey": "c2",
+    "hikey": "d2",
+    "keycenter": "c#2",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-e2.wav",
+    "lokey": "d#2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-g2.wav",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-a#2.wav",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": "-32",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-c#3.wav",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-e3.wav",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-a#3.wav",
+    "lokey": "a3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "-29",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Bassoons/bassoons-sus-e5.wav",
+    "lokey": "d#5",
+    "hikey": "e5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Clarinet Solo Legato": {
+  "sfz": "Woodwinds - Performance/Clarinet Solo Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Clarinet/clarinet-d3.wav",
+    "lokey": "d3",
+    "hikey": "d#3",
+    "keycenter": "d3",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-f3.wav",
+    "lokey": "e3",
+    "hikey": "f#3",
+    "keycenter": "f3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-g#3.wav",
+    "lokey": "g3",
+    "hikey": "a3",
+    "keycenter": "g#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-b3.wav",
+    "lokey": "a#3",
+    "hikey": "c4",
+    "keycenter": "b3",
+    "volume": null,
+    "tune": "5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-d4.wav",
+    "lokey": "c#4",
+    "hikey": "d#4",
+    "keycenter": "d4",
+    "volume": null,
+    "tune": "6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-f4.wav",
+    "lokey": "e4",
+    "hikey": "f#4",
+    "keycenter": "f4",
+    "volume": "-1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-g#4.wav",
+    "lokey": "g4",
+    "hikey": "a4",
+    "keycenter": "g#4",
+    "volume": null,
+    "tune": "8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-b4.wav",
+    "lokey": "a#4",
+    "hikey": "c5",
+    "keycenter": "b4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-d5.wav",
+    "lokey": "c#5",
+    "hikey": "d#5",
+    "keycenter": "d5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-f5.wav",
+    "lokey": "e5",
+    "hikey": "f#5",
+    "keycenter": "f5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-g#5.wav",
+    "lokey": "g5",
+    "hikey": "a5",
+    "keycenter": "g#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-b5.wav",
+    "lokey": "a#5",
+    "hikey": "c6",
+    "keycenter": "b5",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinet/clarinet-d6.wav",
+    "lokey": "c#6",
+    "hikey": "d6",
+    "keycenter": "d6",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   }
+  ]
+ },
+ "Clarinets Legato": {
+  "sfz": "Woodwinds - Performance/Clarinets Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Clarinets/clarinets-sus-d3.wav",
+    "lokey": "d3",
+    "hikey": "d#3",
+    "keycenter": "d3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-f3.wav",
+    "lokey": "e3",
+    "hikey": "f#3",
+    "keycenter": "f3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-g#3.wav",
+    "lokey": "g3",
+    "hikey": "a3",
+    "keycenter": "g#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-b3.wav",
+    "lokey": "a#3",
+    "hikey": "c4",
+    "keycenter": "b3",
+    "volume": "-29",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-d4.wav",
+    "lokey": "c#4",
+    "hikey": "d#4",
+    "keycenter": "d4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-f4.wav",
+    "lokey": "e4",
+    "hikey": "f#4",
+    "keycenter": "f4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-g#4.wav",
+    "lokey": "g4",
+    "hikey": "a4",
+    "keycenter": "g#4",
+    "volume": "-28",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-b4.wav",
+    "lokey": "a#4",
+    "hikey": "c5",
+    "keycenter": "b4",
+    "volume": "-31",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-d5.wav",
+    "lokey": "c#5",
+    "hikey": "d#5",
+    "keycenter": "d5",
+    "volume": "-31",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-f5.wav",
+    "lokey": "e5",
+    "hikey": "f#5",
+    "keycenter": "f5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-g#5.wav",
+    "lokey": "g5",
+    "hikey": "a5",
+    "keycenter": "g#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-b5.wav",
+    "lokey": "a#5",
+    "hikey": "c6",
+    "keycenter": "b5",
+    "volume": "-27",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Clarinets/clarinets-sus-d6.wav",
+    "lokey": "c#6",
+    "hikey": "f6",
+    "keycenter": "d6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Contrabassoon Solo Legato": {
+  "sfz": "Woodwinds - Performance/Contrabassoon Solo Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-a#0.wav",
+    "lokey": "a#0",
+    "hikey": "b0",
+    "keycenter": "a#0",
+    "volume": null,
+    "tune": "-20",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-c#1.wav",
+    "lokey": "c1",
+    "hikey": "d1",
+    "keycenter": "c#1",
+    "volume": null,
+    "tune": "-16",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-e1.wav",
+    "lokey": "d#1",
+    "hikey": "f1",
+    "keycenter": "e1",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-g1.wav",
+    "lokey": "f#1",
+    "hikey": "g#1",
+    "keycenter": "g1",
+    "volume": null,
+    "tune": "-11",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-a#1.wav",
+    "lokey": "a1",
+    "hikey": "b1",
+    "keycenter": "a#1",
+    "volume": "2",
+    "tune": "-18",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-c#2.wav",
+    "lokey": "c2",
+    "hikey": "d2",
+    "keycenter": "c#2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-e2.wav",
+    "lokey": "d#2",
+    "hikey": "f2",
+    "keycenter": "e2",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-g2.wav",
+    "lokey": "f#2",
+    "hikey": "g#2",
+    "keycenter": "g2",
+    "volume": "2",
+    "tune": "-16",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-a#2.wav",
+    "lokey": "a2",
+    "hikey": "b2",
+    "keycenter": "a#2",
+    "volume": "2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-c#3.wav",
+    "lokey": "c3",
+    "hikey": "d3",
+    "keycenter": "c#3",
+    "volume": null,
+    "tune": "-13",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-e3.wav",
+    "lokey": "d#3",
+    "hikey": "f3",
+    "keycenter": "e3",
+    "volume": "-1",
+    "tune": "-16",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-g3.wav",
+    "lokey": "f#3",
+    "hikey": "g#3",
+    "keycenter": "g3",
+    "volume": "-1",
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Contrabassoon/contrabassoon-a#3.wav",
+    "lokey": "a3",
+    "hikey": "a#3",
+    "keycenter": "a#3",
+    "volume": "-1",
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Cor Anglais Solo Legato": {
+  "sfz": "Woodwinds - Performance/Cor Anglais Solo Legato.sfz",
+  "n": 9,
+  "missing": 9,
+  "samples": [
+   {
+    "src": "Samples/Cor",
+    "lokey": "f3",
+    "hikey": "f#3",
+    "keycenter": "f3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "g3",
+    "hikey": "a3",
+    "keycenter": "g#3",
+    "volume": null,
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "a#3",
+    "hikey": "c4",
+    "keycenter": "b3",
+    "volume": null,
+    "tune": "-6",
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "c#4",
+    "hikey": "d#4",
+    "keycenter": "d4",
+    "volume": "2",
+    "tune": "-9",
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "e4",
+    "hikey": "f#4",
+    "keycenter": "f4",
+    "volume": "2",
+    "tune": "-12",
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "g4",
+    "hikey": "a4",
+    "keycenter": "g#4",
+    "volume": "2",
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "a#4",
+    "hikey": "c5",
+    "keycenter": "b4",
+    "volume": "3",
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "c#5",
+    "hikey": "d#5",
+    "keycenter": "d5",
+    "volume": "3",
+    "tune": null,
+    "exists": false
+   },
+   {
+    "src": "Samples/Cor",
+    "lokey": "e5",
+    "hikey": "f5",
+    "keycenter": "f5",
+    "volume": "3",
+    "tune": "-8",
+    "exists": false
+   }
+  ]
+ },
+ "Flute Solo 1 Legato": {
+  "sfz": "Woodwinds - Performance/Flute Solo 1 Legato.sfz",
+  "n": 13,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Flute/flute-c3.wav",
+    "lokey": "c4",
+    "hikey": "c#4",
+    "keycenter": "c4",
+    "volume": "-1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-d#3.wav",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-f#3.wav",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-a3.wav",
+    "lokey": "g#4",
+    "hikey": "a#4",
+    "keycenter": "a4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-c4.wav",
+    "lokey": "b4",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": "-16",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-d#4.wav",
+    "lokey": "d5",
+    "hikey": "e5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-f#4.wav",
+    "lokey": "f5",
+    "hikey": "g5",
+    "keycenter": "f#5",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-a4.wav",
+    "lokey": "g#5",
+    "hikey": "a#5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": "-17",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-c5.wav",
+    "lokey": "b5",
+    "hikey": "c#6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-d#5.wav",
+    "lokey": "d6",
+    "hikey": "e6",
+    "keycenter": "d#6",
+    "volume": "-2",
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-f#5.wav",
+    "lokey": "f6",
+    "hikey": "g6",
+    "keycenter": "f#6",
+    "volume": "-3",
+    "tune": "-16",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-a5.wav",
+    "lokey": "g#6",
+    "hikey": "a#6",
+    "keycenter": "a6",
+    "volume": null,
+    "tune": "-17",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute/flute-c6.wav",
+    "lokey": "b6",
+    "hikey": "c7",
+    "keycenter": "c7",
+    "volume": null,
+    "tune": "-18",
+    "exists": true
+   }
+  ]
+ },
+ "Flute Solo 2 Legato Non-Vibrato": {
+  "sfz": "Woodwinds - Performance/Flute Solo 2 Legato Non-Vibrato.sfz",
+  "n": 24,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Flute",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": "2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": "1",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Flute Solo 2 Legato": {
+  "sfz": "Woodwinds - Performance/Flute Solo 2 Legato.sfz",
+  "n": 24,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Flute",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "-15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "-7",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": "-24",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "-20",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-4",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": "1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": "-4",
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": "-2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": "2",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": null,
+    "tune": "-18",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-6",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": "3",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "d#6",
+    "hikey": "f6",
+    "keycenter": "e6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "f#6",
+    "hikey": "g#6",
+    "keycenter": "g6",
+    "volume": null,
+    "tune": "-1",
+    "exists": true
+   },
+   {
+    "src": "Samples/Flute",
+    "lokey": "a6",
+    "hikey": "c7",
+    "keycenter": "a#6",
+    "volume": null,
+    "tune": "-3",
+    "exists": true
+   }
+  ]
+ },
+ "Flutes Legato": {
+  "sfz": "Woodwinds - Performance/Flutes Legato.sfz",
+  "n": 12,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Flutes/flutes-sus-c3.wav",
+    "lokey": "c4",
+    "hikey": "c#4",
+    "keycenter": "c4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-d#3.wav",
+    "lokey": "d4",
+    "hikey": "e4",
+    "keycenter": "d#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-f#3.wav",
+    "lokey": "f4",
+    "hikey": "g4",
+    "keycenter": "f#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-a3.wav",
+    "lokey": "g#4",
+    "hikey": "a#4",
+    "keycenter": "a4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-c4.wav",
+    "lokey": "b4",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-d#4.wav",
+    "lokey": "d5",
+    "hikey": "e5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-f#4.wav",
+    "lokey": "f5",
+    "hikey": "g5",
+    "keycenter": "f#5",
+    "volume": "-32",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-a4.wav",
+    "lokey": "g#5",
+    "hikey": "a#5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-c5.wav",
+    "lokey": "b5",
+    "hikey": "c#6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-d#5.wav",
+    "lokey": "d6",
+    "hikey": "e6",
+    "keycenter": "d#6",
+    "volume": "-29",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-f#5.wav",
+    "lokey": "f6",
+    "hikey": "g6",
+    "keycenter": "f#6",
+    "volume": "-31",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Flutes/flutes-sus-a5.wav",
+    "lokey": "g#6",
+    "hikey": "c7",
+    "keycenter": "a6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Oboe Solo Legato": {
+  "sfz": "Woodwinds - Performance/Oboe Solo Legato.sfz",
+  "n": 10,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Oboe/oboe-a#3.wav",
+    "lokey": "a#3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": "-8",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": "-9",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": "-14",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": null,
+    "tune": "-10",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "-2",
+    "tune": "-5",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": "-2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-e5.wav",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": "4",
+    "tune": "-15",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-g5.wav",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": "-20",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-a#5.wav",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": "-22",
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboe/oboe-c6.wav",
+    "lokey": "c6",
+    "hikey": "d#6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": "-25",
+    "exists": true
+   }
+  ]
+ },
+ "Oboes Legato": {
+  "sfz": "Woodwinds - Performance/Oboes Legato.sfz",
+  "n": 11,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Oboes/oboes-sus-a#3.wav",
+    "lokey": "a#3",
+    "hikey": "b3",
+    "keycenter": "a#3",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-c#4.wav",
+    "lokey": "c4",
+    "hikey": "d4",
+    "keycenter": "c#4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-e4.wav",
+    "lokey": "d#4",
+    "hikey": "f4",
+    "keycenter": "e4",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-g4.wav",
+    "lokey": "f#4",
+    "hikey": "g#4",
+    "keycenter": "g4",
+    "volume": "-32",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-a#4.wav",
+    "lokey": "a4",
+    "hikey": "b4",
+    "keycenter": "a#4",
+    "volume": "-29",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-c#5.wav",
+    "lokey": "c5",
+    "hikey": "d5",
+    "keycenter": "c#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-e5.wav",
+    "lokey": "d#5",
+    "hikey": "f5",
+    "keycenter": "e5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-g5.wav",
+    "lokey": "f#5",
+    "hikey": "g#5",
+    "keycenter": "g5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-a#5.wav",
+    "lokey": "a5",
+    "hikey": "b5",
+    "keycenter": "a#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-c#6.flac",
+    "lokey": "c6",
+    "hikey": "d6",
+    "keycenter": "c#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Oboes/oboes-sus-e6.flac",
+    "lokey": "d#6",
+    "hikey": "g6",
+    "keycenter": "e6",
+    "volume": "-33",
+    "tune": null,
+    "exists": true
+   }
+  ]
+ },
+ "Piccolo Solo Legato": {
+  "sfz": "Woodwinds - Performance/Piccolo Solo Legato.sfz",
+  "n": 11,
+  "missing": 0,
+  "samples": [
+   {
+    "src": "Samples/Piccolo/piccolo-c4.wav",
+    "lokey": "c5",
+    "hikey": "c#5",
+    "keycenter": "c5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-d#4.wav",
+    "lokey": "d5",
+    "hikey": "e5",
+    "keycenter": "d#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-f#4.wav",
+    "lokey": "f5",
+    "hikey": "g5",
+    "keycenter": "f#5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-a4.wav",
+    "lokey": "g#5",
+    "hikey": "a#5",
+    "keycenter": "a5",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-c5.wav",
+    "lokey": "b5",
+    "hikey": "c#6",
+    "keycenter": "c6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-d#5.wav",
+    "lokey": "d6",
+    "hikey": "e6",
+    "keycenter": "d#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-f#5.wav",
+    "lokey": "f6",
+    "hikey": "g6",
+    "keycenter": "f#6",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-a5.wav",
+    "lokey": "g#6",
+    "hikey": "a#6",
+    "keycenter": "a6",
+    "volume": "2",
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-c6.wav",
+    "lokey": "b6",
+    "hikey": "c#7",
+    "keycenter": "c7",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-d#6.wav",
+    "lokey": "d7",
+    "hikey": "e7",
+    "keycenter": "d#7",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   },
+   {
+    "src": "Samples/Piccolo/piccolo-f#6.wav",
+    "lokey": "f7",
+    "hikey": "g7",
+    "keycenter": "f#7",
+    "volume": null,
+    "tune": null,
+    "exists": true
+   }
+  ]
+ }
+}

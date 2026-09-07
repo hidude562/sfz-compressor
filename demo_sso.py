@@ -80,6 +80,7 @@ def main() -> int:
     ap.add_argument("--method", default="dctloop", choices=["dctloop", "auto", "hybrid", "laroche"])
     ap.add_argument("--loop-seconds", type=float, default=None, help="dctloop: target loop length in seconds")
     ap.add_argument("--basis", default="dft", choices=["auto", "dct", "dft"], help="dctloop synthesis basis (dft keeps the original phases at the join)")
+    ap.add_argument("--no-tail-morph", action="store_true", help="dctloop: do not EQ-morph the recording towards the loop before the join")
     ap.add_argument("--refine", action="store_true")
     ap.add_argument("--lfo", action="store_true")
     ap.add_argument("--loop-crossfade", type=float, default=0.0)
@@ -118,7 +119,8 @@ def main() -> int:
         fmt = "flac" if path.lower().endswith(".flac") else "wav"
         cfg = LoopConfig(q=args.q, n_candidates=args.candidates, baseline=True, out_format=fmt,
                          max_total_s=args.max_duration, method=args.method, refine=args.refine, lfo=args.lfo,
-                         loop_crossfade_s=args.loop_crossfade, loop_seconds=args.loop_seconds, dct_basis=args.basis)
+                         loop_crossfade_s=args.loop_crossfade, loop_seconds=args.loop_seconds, dct_basis=args.basis,
+                         tail_morph=not args.no_tail_morph)
         from sfzc.looper import process_sample
 
         lp = SampleLooper(path, cfg)  # for name / render protocol only

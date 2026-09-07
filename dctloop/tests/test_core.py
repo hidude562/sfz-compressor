@@ -334,3 +334,15 @@ def test_unknown_format_rejected():
         sf.write(src, x, FS, subtype='PCM_24')
         with pytest.raises(ValueError):
             loop_file(src, None, 0.25, format='ogg')
+
+
+def test_segment_shorter_than_two_periods_raises_instead_of_hanging():
+    """A 1.2 s tuba note at 52 Hz whose sustain analysis window was 50 ms made loop_signal spin
+    forever in its shortening loop (fit_loop_length cannot return less than one period)."""
+    import pytest
+    from dctloop.core import loop_signal
+    fs, f0 = 44100, 52.0
+    t = np.arange(int(0.03 * fs)) / fs                       # 30 ms: about 1.5 periods
+    x = np.sin(2 * np.pi * f0 * t)[:, None]
+    with pytest.raises(ValueError, match='fewer than two periods'):
+        loop_signal(x, fs, 0.5, f0=f0)
