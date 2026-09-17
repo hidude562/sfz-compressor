@@ -311,3 +311,7 @@ seam + score checks on a synthetic vibrato note, and the one-shot path.
 * Metric weights are uncalibrated (no listening test yet); `calibrate()` is
   the hook for that.
 * Very low notes (< ~50 Hz) get windows shorter than the ideal 10 periods.
+
+## Licence
+
+MIT, see [LICENSE](LICENSE).
